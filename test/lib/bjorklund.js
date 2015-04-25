@@ -62,4 +62,8 @@ describe('bjorklund', function () {
     assert.equal(bjork(7, 8), '10111111');
   });
 
+  it('uses the length number if pulses is a larger number', function () {
+    assert.equal(bjork(7, 5), bjork(5, 5));
+  });
+
 });
