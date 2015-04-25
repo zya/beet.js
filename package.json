@@ -1,0 +1,21 @@
+{
+  "name": "poly",
+  "version": "0.0.0",
+  "description": "Polyrhythms in web audio",
+  "main": "index.js",
+  "scripts": {
+    "build": "browserify index.js > build/poly.js",
+    "test": "mocha"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "lodash": "^3.7.0",
+    "waaclock": "^0.5.1"
+  },
+  "devDependencies": {
+    "browserify": "^9.0.8",
+    "chai": "^2.2.0",
+    "mocha": "^2.2.4"
+  }
+}
