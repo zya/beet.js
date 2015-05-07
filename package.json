@@ -7,11 +7,11 @@
     "build": "browserify index.js > build/poly.js",
     "test": "mocha"
   },
-  "author": "",
+  "author": "zya",
   "license": "ISC",
   "dependencies": {
-    "lodash": "^3.7.0",
-    "waaclock": "^0.5.1"
+    "bjorklund": "^1.0.3",
+    "wa-metro": "^1.0.3"
   },
   "devDependencies": {
     "browserify": "^9.0.8",

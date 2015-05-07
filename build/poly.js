@@ -2,47 +2,118 @@
 var context = new AudioContext();
 var gain = context.createGain();
 gain.connect(context.destination);
-gain.gain.value = 0.5;
+gain.gain.value = 0.2;
+
 
 var Poly = require('./lib/poly');
 var poly = new Poly({
   context: context,
-  speed: 2
+  tempo: 90
 });
 
 function on(time) {
   var osc = context.createOscillator();
   osc.connect(gain);
-  osc.start(context.currentTime + time);
-  osc.stop(context.currentTime + time + 0.2);
+  osc.start(time);
+  osc.stop(time + 0.1);
 }
 
 function off(time) {
   var osc = context.createOscillator();
   osc.connect(gain);
   osc.frequency.value = 220;
-  osc.start(context.currentTime + time);
-  osc.stop(context.currentTime + time + 0.2);
+  osc.start(time);
+  osc.stop(time + 0.15);
+}
+var sequence = poly.sequence(4, 4);
+var sequence2 = poly.sequence(5, 5);
+var layer = poly.layer(sequence, on, off);
+var layer2 = poly.layer(sequence2, off, off);
+poly.add(layer);
+poly.add(layer2);
+poly.start();
+
+// var Metro = require('wa-metro');
+// var metro = new Metro(context, on);
+// metro.start();
+},{"./lib/poly":2}],2:[function(require,module,exports){
+var Metro = require('wa-metro');
+var bjork = require('bjorklund');
+
+function Layer(context, tempo, sequence, on, off) {
+  var self = this;
+  this.on = on;
+  this.off = off;
+  this.sequence = sequence.seq;
+  this.id = Math.random() * 10000;
+  this.metro = new Metro(context, function (time, step) {
+    if (self.sequence[step - 1] === '1') {
+      self.on(time, step);
+    } else {
+      self.off(time, step);
+    }
+  });
+  this.metro.steps = this.sequence.length;
+  this.metro.tempo = tempo;
 }
 
-poly.start();
-poly.add(5, 9, on, off);
+Layer.prototype.start = function () {
+  this.metro.start();
+};
 
+Layer.prototype.pause = function () {
+  this.metro.pause();
+};
 
-},{"./lib/poly":3}],2:[function(require,module,exports){
+Layer.prototype.stop = function () {
+  this.metro.stop();
+};
+
+function Sequence(pulses, steps) {
+  this.seq = bjork(pulses, steps).split('');
+  return this;
+}
+
+function Poly(opts) {
+  this.context = opts.context;
+  this.tempo = opts.tempo || 120;
+  this.layers = [];
+}
+
+Poly.prototype.layer = function (seq, on, off) {
+  var layer = new Layer(this.context, this.tempo, seq, on, off);
+  return layer;
+};
+
+Poly.prototype.sequence = function (pulses, steps) {
+  return new Sequence(pulses, steps);
+};
+
+Poly.prototype.add = function (layer) {
+  this.layers.push(layer);
+};
+
+Poly.prototype.start = function () {
+  this.layers.forEach(function (layer) {
+    layer.start();
+  });
+};
+
+module.exports = Poly;
+},{"bjorklund":3,"wa-metro":5}],3:[function(require,module,exports){
 var _ = require('lodash');
 
 module.exports = function bjorklund(pulses, length) {
   var ones = [];
   ones.length = pulses >= length ? length : pulses;
   var zeros = [];
-  zeros.length = pulses >= length ? length : length - pulses;
+  zeros.length = pulses >= length ? 0 : length - pulses;
   _.fill(ones, '1');
   _.fill(zeros, '0');
-  return generate(ones, zeros);
+  return generate_one_based(ones, zeros);
 };
 
-function generate(ones, zeros) {
+function generate_one_based(ones, zeros) {
   if (zeros.length > 0) {
     var zipped = _.zip(ones, zeros).map(function (item) {
       return _.compact(item).join().replace(/,/g, '');
@@ -50,105 +121,32 @@ function generate(ones, zeros) {
     var partitioned = _.partition(zipped, function (item) {
       return item.length > 1;
     });
-    return generate(partitioned[0], partitioned[1]);
+    return generate_one_based(partitioned[0], partitioned[1]);
   } else {
     return ones.reverse().join().replace(/,/g, '');
   }
 }
-},{"lodash":5}],3:[function(require,module,exports){
-var Clock = require('waaclock');
-var bjork = require('./bjorklund');
 
-function Poly(opts) {
-  this.context = opts.context || new AudioContext();
-  this.speed = opts.speed || 2;
-  this.clock = new Clock(this.context);
-}
+// to be used as option
+function generate_zero_based(ones, zeros) {
 
-Poly.prototype.add = function(pulses, length, on, off) {
-  var sequence = bjork(pulses, length).split('');
-  this.clock.callbackAtTime(function () {
-    var steptime = 2 / length;
-    sequence.forEach(function (step, index) {
-      if (step === '1') {
-        on(steptime * index);
-      } else if (step === '0') {
-        off(steptime * index);
-      }
+  if (zeros.length > 0) {
+    var zipped = _.zip(zeros, ones).map(function (item) {
+      return _.compact(item).join().replace(/,/g, '');
     });
-  }, 0.01).repeat(this.speed);
-};
-
-Poly.prototype.start = function (time) {
-  this.clock.start();
-};
-
-module.exports = Poly;
-},{"./bjorklund":2,"waaclock":6}],4:[function(require,module,exports){
-// shim for using process in browser
-
-var process = module.exports = {};
-var queue = [];
-var draining = false;
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    draining = true;
-    var currentQueue;
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        var i = -1;
-        while (++i < len) {
-            currentQueue[i]();
-        }
-        len = queue.length;
-    }
-    draining = false;
+    var partitioned = _.partition(zipped, function (item) {
+      return item.length > 1;
+    });
+    return generate_zero_based(partitioned[0], partitioned[1]);
+  } else {
+    return ones.reverse().join().replace(/,/g, '');
+  }
 }
-process.nextTick = function (fun) {
-    queue.push(fun);
-    if (!draining) {
-        setTimeout(drainQueue, 0);
-    }
-};
-
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-// TODO(shtylman)
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
-
-},{}],5:[function(require,module,exports){
+},{"lodash":4}],4:[function(require,module,exports){
 (function (global){
 /**
  * @license
- * lodash 3.7.0 (Custom Build) <https://lodash.com/>
+ * lodash 3.8.0 (Custom Build) <https://lodash.com/>
  * Build: `lodash modern -d -o ./index.js`
  * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
@@ -161,7 +159,7 @@ process.umask = function() { return 0; };
   var undefined;
 
   /** Used as the semantic version number. */
-  var VERSION = '3.7.0';
+  var VERSION = '3.8.0';
 
   /** Used to compose bitmasks for wrapper metadata. */
   var BIND_FLAG = 1,
@@ -236,7 +234,7 @@ process.umask = function() { return 0; };
       reInterpolate = /<%=([\s\S]+?)%>/g;
 
   /** Used to match property names within property paths. */
-  var reIsDeepProp = /\.|\[(?:[^[\]]+|(["'])(?:(?!\1)[^\n\\]|\\.)*?)\1\]/,
+  var reIsDeepProp = /\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\n\\]|\\.)*?\1)\]/,
       reIsPlainProp = /^\w*$/,
       rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\n\\]|\\.)*?)\2)\]/g;
 
@@ -427,8 +425,6 @@ process.umask = function() { return 0; };
    * restricted `window` object, otherwise the `window` object is used.
    */
   var root = freeGlobal || ((freeWindow !== (this && this.window)) && freeWindow) || freeSelf || this;
-
-  /*--------------------------------------------------------------------------*/
 
   /**
    * The base implementation of `compareAscending` which compares values and
@@ -800,8 +796,6 @@ process.umask = function() { return 0; };
     return htmlUnescapes[chr];
   }
 
-  /*--------------------------------------------------------------------------*/
-
   /**
    * Create a new pristine `lodash` function using the given `context` object.
    *
@@ -897,7 +891,7 @@ process.umask = function() { return 0; };
         getOwnPropertySymbols = isNative(getOwnPropertySymbols = Object.getOwnPropertySymbols) && getOwnPropertySymbols,
         getPrototypeOf = isNative(getPrototypeOf = Object.getPrototypeOf) && getPrototypeOf,
         push = arrayProto.push,
-        preventExtensions = isNative(Object.preventExtensions = Object.preventExtensions) && preventExtensions,
+        preventExtensions = isNative(preventExtensions = Object.preventExtensions) && preventExtensions,
         propertyIsEnumerable = objectProto.propertyIsEnumerable,
         Set = isNative(Set = context.Set) && Set,
         setTimeout = context.setTimeout,
@@ -925,12 +919,19 @@ process.umask = function() { return 0; };
       //
       // Use `Object.preventExtensions` on a plain object instead of simply using
       // `Object('x')` because Chrome and IE fail to throw an error when attempting
-      // to assign values to readonly indexes of strings in strict mode.
-      var object = { '1': 0 },
-          func = preventExtensions && isNative(func = Object.assign) && func;
-
-      try { func(preventExtensions(object), 'xo'); } catch(e) {}
-      return !object[1] && func;
+      // to assign values to readonly indexes of strings.
+      var func = preventExtensions && isNative(func = Object.assign) && func;
+      try {
+        if (func) {
+          var object = preventExtensions({ '1': 0 });
+          object[0] = 1;
+        }
+      } catch(e) {
+        // Only attempt in strict mode.
+        try { func(object, 'xo'); } catch(e) {}
+        return !object[1] && func;
+      }
+      return false;
     }());
 
     /* Native method references for those with the same name as other `lodash` methods. */
@@ -951,7 +952,7 @@ process.umask = function() { return 0; };
 
     /** Used as references for the maximum length and index of an array. */
     var MAX_ARRAY_LENGTH = Math.pow(2, 32) - 1,
-        MAX_ARRAY_INDEX =  MAX_ARRAY_LENGTH - 1,
+        MAX_ARRAY_INDEX = MAX_ARRAY_LENGTH - 1,
         HALF_MAX_ARRAY_LENGTH = MAX_ARRAY_LENGTH >>> 1;
 
     /** Used as the size, in bytes, of each `Float64Array` element. */
@@ -968,8 +969,6 @@ process.umask = function() { return 0; };
 
     /** Used to lookup unminified function names. */
     var realNames = {};
-
-    /*------------------------------------------------------------------------*/
 
     /**
      * Creates a `lodash` object which wraps `value` to enable implicit chaining.
@@ -1110,6 +1109,7 @@ process.umask = function() { return 0; };
 
     (function(x) {
       var Ctor = function() { this.x = x; },
+          args = arguments,
           object = { '0': x, 'length': x },
           props = [];
 
@@ -1159,7 +1159,7 @@ process.umask = function() { return 0; };
        * @type boolean
        */
       try {
-        support.nonEnumArgs = !propertyIsEnumerable.call(arguments, 1);
+        support.nonEnumArgs = !propertyIsEnumerable.call(args, 1);
       } catch(e) {
         support.nonEnumArgs = true;
       }
@@ -1225,8 +1225,6 @@ process.umask = function() { return 0; };
         '_': lodash
       }
     };
-
-    /*------------------------------------------------------------------------*/
 
     /**
      * Creates a lazy wrapper object which wraps `value` to enable lazy evaluation.
@@ -1356,8 +1354,6 @@ process.umask = function() { return 0; };
       return result;
     }
 
-    /*------------------------------------------------------------------------*/
-
     /**
      * Creates a cache object to store key/value pairs.
      *
@@ -1426,8 +1422,6 @@ process.umask = function() { return 0; };
       return this;
     }
 
-    /*------------------------------------------------------------------------*/
-
     /**
      *
      * Creates a cache object to store unique values.
@@ -1476,8 +1470,6 @@ process.umask = function() { return 0; };
         data.hash[value] = true;
       }
     }
-
-    /*------------------------------------------------------------------------*/
 
     /**
      * Copies the values of `source` to `array`.
@@ -1822,8 +1814,9 @@ process.umask = function() { return 0; };
      */
     function baseAt(collection, props) {
       var index = -1,
-          length = collection.length,
-          isArr = isLength(length),
+          isNil = collection == null,
+          isArr = !isNil && isArrayLike(collection),
+          length = isArr && collection.length,
           propsLength = props.length,
           result = Array(propsLength);
 
@@ -1832,7 +1825,7 @@ process.umask = function() { return 0; };
         if (isArr) {
           result[index] = isIndex(key, length) ? collection[key] : undefined;
         } else {
-          result[index] = collection[key];
+          result[index] = isNil ? undefined : collection[key];
         }
       }
       return result;
@@ -2159,8 +2152,8 @@ process.umask = function() { return 0; };
      *
      * @private
      * @param {Array} array The array to flatten.
-     * @param {boolean} isDeep Specify a deep flatten.
-     * @param {boolean} isStrict Restrict flattening to arrays and `arguments` objects.
+     * @param {boolean} [isDeep] Specify a deep flatten.
+     * @param {boolean} [isStrict] Restrict flattening to arrays-like objects.
      * @returns {Array} Returns the new flattened array.
      */
     function baseFlatten(array, isDeep, isStrict) {
@@ -2171,8 +2164,8 @@ process.umask = function() { return 0; };
 
       while (++index < length) {
         var value = array[index];
-
-        if (isObjectLike(value) && isLength(value.length) && (isArray(value) || isArguments(value))) {
+        if (isObjectLike(value) && isArrayLike(value) &&
+            (isStrict || isArray(value) || isArguments(value))) {
           if (isDeep) {
             // Recursively flatten arrays (susceptible to call stack limits).
             value = baseFlatten(value, isDeep, isStrict);
@@ -2180,7 +2173,6 @@ process.umask = function() { return 0; };
           var valIndex = -1,
               valLength = value.length;
 
-          result.length += valLength;
           while (++valIndex < valLength) {
             result[++resIndex] = value[valIndex];
           }
@@ -2301,9 +2293,9 @@ process.umask = function() { return 0; };
           length = path.length;
 
       while (object != null && ++index < length) {
-        var result = object = object[path[index]];
+        object = object[path[index]];
       }
-      return result;
+      return (index && index == length) ? object : undefined;
     }
 
     /**
@@ -2322,8 +2314,7 @@ process.umask = function() { return 0; };
     function baseIsEqual(value, other, customizer, isLoose, stackA, stackB) {
       // Exit early for identical values.
       if (value === other) {
-        // Treat `+0` vs. `-0` as not equal.
-        return value !== 0 || (1 / value == 1 / other);
+        return true;
       }
       var valType = typeof value,
           othType = typeof other;
@@ -2472,8 +2463,7 @@ process.umask = function() { return 0; };
      */
     function baseMap(collection, iteratee) {
       var index = -1,
-          length = getLength(collection),
-          result = isLength(length) ? Array(length) : [];
+          result = isArrayLike(collection) ? Array(collection.length) : [];
 
       baseEach(collection, function(value, key, collection) {
         result[++index] = iteratee(value, key, collection);
@@ -2572,7 +2562,7 @@ process.umask = function() { return 0; };
       if (!isObject(object)) {
         return object;
       }
-      var isSrcArr = isLength(source.length) && (isArray(source) || isTypedArray(source));
+      var isSrcArr = isArrayLike(source) && (isArray(source) || isTypedArray(source));
       if (!isSrcArr) {
         var props = keys(source);
         push.apply(props, getSymbols(source));
@@ -2635,10 +2625,10 @@ process.umask = function() { return 0; };
 
       if (isCommon) {
         result = srcValue;
-        if (isLength(srcValue.length) && (isArray(srcValue) || isTypedArray(srcValue))) {
+        if (isArrayLike(srcValue) && (isArray(srcValue) || isTypedArray(srcValue))) {
           result = isArray(value)
             ? value
-            : (getLength(value) ? arrayCopy(value) : []);
+            : (isArrayLike(value) ? arrayCopy(value) : []);
         }
         else if (isPlainObject(srcValue) || isArguments(srcValue)) {
           result = isArguments(value)
@@ -2700,7 +2690,7 @@ process.umask = function() { return 0; };
      * @returns {Array} Returns `array`.
      */
     function basePullAt(array, indexes) {
-      var length = indexes.length;
+      var length = array ? indexes.length : 0;
       while (length--) {
         var index = parseFloat(indexes[length]);
         if (index != previous && isIndex(index)) {
@@ -3186,12 +3176,12 @@ process.umask = function() { return 0; };
       while (++argsIndex < argsLength) {
         result[argsIndex] = args[argsIndex];
       }
-      var pad = argsIndex;
+      var offset = argsIndex;
       while (++rightIndex < rightLength) {
-        result[pad + rightIndex] = partials[rightIndex];
+        result[offset + rightIndex] = partials[rightIndex];
       }
       while (++holdersIndex < holdersLength) {
-        result[pad + holders[holdersIndex]] = args[argsIndex++];
+        result[offset + holders[holdersIndex]] = args[argsIndex++];
       }
       return result;
     }
@@ -3459,7 +3449,7 @@ process.umask = function() { return 0; };
           return index > -1 ? collection[index] : undefined;
         }
         return baseFind(collection, predicate, eachFunc);
-      }
+      };
     }
 
     /**
@@ -3525,7 +3515,7 @@ process.umask = function() { return 0; };
           funcName = getFuncName(func);
 
           var data = funcName == 'wrapper' ? getData(func) : null;
-          if (data && isLaziable(data[0])) {
+          if (data && isLaziable(data[0]) && data[1] == (ARY_FLAG | CURRY_FLAG | PARTIAL_FLAG | REARG_FLAG) && !data[4].length && data[9] == 1) {
             wrapper = wrapper[getFuncName(data[0])].apply(wrapper, data[3]);
           } else {
             wrapper = (func.length == 1 && isLaziable(func)) ? wrapper[funcName]() : wrapper.thru(func);
@@ -3596,6 +3586,28 @@ process.umask = function() { return 0; };
     }
 
     /**
+     * Creates a function for `_.mapKeys` or `_.mapValues`.
+     *
+     * @private
+     * @param {boolean} [isMapKeys] Specify mapping keys instead of values.
+     * @returns {Function} Returns the new map function.
+     */
+    function createObjectMapper(isMapKeys) {
+      return function(object, iteratee, thisArg) {
+        var result = {};
+        iteratee = getCallback(iteratee, thisArg, 3);
+
+        baseForOwn(object, function(value, key, object) {
+          var mapped = iteratee(value, key, object);
+          key = isMapKeys ? mapped : key;
+          value = isMapKeys ? value : mapped;
+          result[key] = value;
+        });
+        return result;
+      };
+    }
+
+    /**
      * Creates a function for `_.padLeft` or `_.padRight`.
      *
      * @private
@@ -3605,7 +3617,7 @@ process.umask = function() { return 0; };
     function createPadDir(fromRight) {
       return function(string, length, chars) {
         string = baseToString(string);
-        return string && ((fromRight ? string : '') + createPadding(string, length, chars) + (fromRight ? '' : string));
+        return (fromRight ? string : '') + createPadding(string, length, chars) + (fromRight ? '' : string);
       };
     }
 
@@ -3951,8 +3963,7 @@ process.umask = function() { return 0; };
           // Treat `NaN` vs. `NaN` as equal.
           return (object != +object)
             ? other != +other
-            // But, treat `-0` vs. `+0` as not equal.
-            : (object == 0 ? ((1 / object) == (1 / other)) : object == +other);
+            : object == +other;
 
         case regexpTag:
         case stringTag:
@@ -4132,7 +4143,7 @@ process.umask = function() { return 0; };
      * Gets the "length" property value of `object`.
      *
      * **Note:** This function is used to avoid a [JIT bug](https://bugs.webkit.org/show_bug.cgi?id=142792)
-     * in Safari on iOS 8.1 ARM64.
+     * that affects Safari on at least iOS 8.1-8.3 ARM64.
      *
      * @private
      * @param {Object} object The object to query.
@@ -4272,6 +4283,17 @@ process.umask = function() { return 0; };
     }
 
     /**
+     * Checks if `value` is array-like.
+     *
+     * @private
+     * @param {*} value The value to check.
+     * @returns {boolean} Returns `true` if `value` is array-like, else `false`.
+     */
+    function isArrayLike(value) {
+      return value != null && isLength(getLength(value));
+    }
+
+    /**
      * Checks if `value` is a valid array-like index.
      *
      * @private
@@ -4299,13 +4321,9 @@ process.umask = function() { return 0; };
         return false;
       }
       var type = typeof index;
-      if (type == 'number') {
-        var length = getLength(object),
-            prereq = isLength(length) && isIndex(index, length);
-      } else {
-        prereq = type == 'string' && index in object;
-      }
-      if (prereq) {
+      if (type == 'number'
+          ? (isArrayLike(object) && isIndex(index, object.length))
+          : (type == 'string' && index in object)) {
         var other = object[index];
         return value === value ? (value === other) : (other !== other);
       }
@@ -4366,7 +4384,7 @@ process.umask = function() { return 0; };
      *  equality comparisons, else `false`.
      */
     function isStrictComparable(value) {
-      return value === value && (value === 0 ? ((1 / value) > 0) : !isObject(value));
+      return value === value && !isObject(value);
     }
 
     /**
@@ -4440,7 +4458,7 @@ process.umask = function() { return 0; };
     }
 
     /**
-     * A specialized version of `_.pick` that picks `object` properties specified
+     * A specialized version of `_.pick` which picks `object` properties specified
      * by `props`.
      *
      * @private
@@ -4465,7 +4483,7 @@ process.umask = function() { return 0; };
     }
 
     /**
-     * A specialized version of `_.pick` that picks `object` properties `predicate`
+     * A specialized version of `_.pick` which picks `object` properties `predicate`
      * returns truthy for.
      *
      * @private
@@ -4610,7 +4628,7 @@ process.umask = function() { return 0; };
       if (value == null) {
         return [];
       }
-      if (!isLength(getLength(value))) {
+      if (!isArrayLike(value)) {
         return values(value);
       }
       return isObject(value) ? value : Object(value);
@@ -4657,8 +4675,6 @@ process.umask = function() { return 0; };
         ? wrapper.clone()
         : new LodashWrapper(wrapper.__wrapped__, wrapper.__chain__, arrayCopy(wrapper.__actions__));
     }
-
-    /*------------------------------------------------------------------------*/
 
     /**
      * Creates an array of elements split into groups the length of `size`.
@@ -4728,11 +4744,8 @@ process.umask = function() { return 0; };
 
     /**
      * Creates an array excluding all values of the provided arrays using
-     * `SameValueZero` for equality comparisons.
-     *
-     * **Note:** [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
-     * comparisons are like strict equality comparisons, e.g. `===`, except that
-     * `NaN` matches `NaN`.
+     * [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
+     * for equality comparisons.
      *
      * @static
      * @memberOf _
@@ -4746,7 +4759,7 @@ process.umask = function() { return 0; };
      * // => [1, 3]
      */
     var difference = restParam(function(array, values) {
-      return (isArray(array) || isArguments(array))
+      return isArrayLike(array)
         ? baseDifference(array, baseFlatten(values, false, true))
         : [];
     });
@@ -5141,13 +5154,10 @@ process.umask = function() { return 0; };
 
     /**
      * Gets the index at which the first occurrence of `value` is found in `array`
-     * using `SameValueZero` for equality comparisons. If `fromIndex` is negative,
-     * it is used as the offset from the end of `array`. If `array` is sorted
-     * providing `true` for `fromIndex` performs a faster binary search.
-     *
-     * **Note:** [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
-     * comparisons are like strict equality comparisons, e.g. `===`, except that
-     * `NaN` matches `NaN`.
+     * using [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
+     * for equality comparisons. If `fromIndex` is negative, it is used as the offset
+     * from the end of `array`. If `array` is sorted providing `true` for `fromIndex`
+     * performs a faster binary search.
      *
      * @static
      * @memberOf _
@@ -5207,12 +5217,9 @@ process.umask = function() { return 0; };
     }
 
     /**
-     * Creates an array of unique values in all provided arrays using `SameValueZero`
+     * Creates an array of unique values in all provided arrays using
+     * [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
      * for equality comparisons.
-     *
-     * **Note:** [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
-     * comparisons are like strict equality comparisons, e.g. `===`, except that
-     * `NaN` matches `NaN`.
      *
      * @static
      * @memberOf _
@@ -5234,7 +5241,7 @@ process.umask = function() { return 0; };
 
       while (++argsIndex < argsLength) {
         var value = arguments[argsIndex];
-        if (isArray(value) || isArguments(value)) {
+        if (isArrayLike(value)) {
           args.push(value);
           caches.push((isCommon && value.length >= 120) ? createCache(argsIndex && value) : null);
         }
@@ -5339,14 +5346,11 @@ process.umask = function() { return 0; };
     }
 
     /**
-     * Removes all provided values from `array` using `SameValueZero` for equality
-     * comparisons.
+     * Removes all provided values from `array` using
+     * [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
+     * for equality comparisons.
      *
-     * **Notes:**
-     *  - Unlike `_.without`, this method mutates `array`
-     *  - [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
-     *    comparisons are like strict equality comparisons, e.g. `===`, except
-     *    that `NaN` matches `NaN`
+     * **Note:** Unlike `_.without`, this method mutates `array`.
      *
      * @static
      * @memberOf _
@@ -5410,7 +5414,6 @@ process.umask = function() { return 0; };
      * // => [10, 20]
      */
     var pullAt = restParam(function(array, indexes) {
-      array || (array = []);
       indexes = baseFlatten(indexes);
 
       var result = baseAt(array, indexes);
@@ -5777,11 +5780,8 @@ process.umask = function() { return 0; };
 
     /**
      * Creates an array of unique values, in order, of the provided arrays using
-     * `SameValueZero` for equality comparisons.
-     *
-     * **Note:** [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
-     * comparisons are like strict equality comparisons, e.g. `===`, except that
-     * `NaN` matches `NaN`.
+     * [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
+     * for equality comparisons.
      *
      * @static
      * @memberOf _
@@ -5798,8 +5798,9 @@ process.umask = function() { return 0; };
     });
 
     /**
-     * Creates a duplicate-free version of an array, using `SameValueZero` for
-     * equality comparisons, in which only the first occurence of each element
+     * Creates a duplicate-free version of an array, using
+     * [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
+     * for equality comparisons, in which only the first occurence of each element
      * is kept. Providing `true` for `isSorted` performs a faster search algorithm
      * for sorted arrays. If an iteratee function is provided it is invoked for
      * each element in the array to generate the criterion by which uniqueness
@@ -5816,10 +5817,6 @@ process.umask = function() { return 0; };
      * If an object is provided for `iteratee` the created `_.matches` style
      * callback returns `true` for elements that have the properties of the given
      * object, else `false`.
-     *
-     * **Note:** [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
-     * comparisons are like strict equality comparisons, e.g. `===`, except that
-     * `NaN` matches `NaN`.
      *
      * @static
      * @memberOf _
@@ -5870,7 +5867,7 @@ process.umask = function() { return 0; };
 
     /**
      * This method is like `_.zip` except that it accepts an array of grouped
-     * elements and creates an array regrouping the elements to their pre-`_.zip`
+     * elements and creates an array regrouping the elements to their pre-zip
      * configuration.
      *
      * @static
@@ -5887,10 +5884,19 @@ process.umask = function() { return 0; };
      * // => [['fred', 'barney'], [30, 40], [true, false]]
      */
     function unzip(array) {
+      if (!(array && array.length)) {
+        return [];
+      }
       var index = -1,
-          length = (array && array.length && arrayMax(arrayMap(array, getLength))) >>> 0,
-          result = Array(length);
+          length = 0;
 
+      array = arrayFilter(array, function(group) {
+        if (isArrayLike(group)) {
+          length = nativeMax(group.length, length);
+          return true;
+        }
+      });
+      var result = Array(length);
       while (++index < length) {
         result[index] = arrayMap(array, baseProperty(index));
       }
@@ -5898,12 +5904,44 @@ process.umask = function() { return 0; };
     }
 
     /**
-     * Creates an array excluding all provided values using `SameValueZero` for
-     * equality comparisons.
+     * This method is like `_.unzip` except that it accepts an iteratee to specify
+     * how regrouped values should be combined. The `iteratee` is bound to `thisArg`
+     * and invoked with four arguments: (accumulator, value, index, group).
      *
-     * **Note:** [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
-     * comparisons are like strict equality comparisons, e.g. `===`, except that
-     * `NaN` matches `NaN`.
+     * @static
+     * @memberOf _
+     * @category Array
+     * @param {Array} array The array of grouped elements to process.
+     * @param {Function} [iteratee] The function to combine regrouped values.
+     * @param {*} [thisArg] The `this` binding of `iteratee`.
+     * @returns {Array} Returns the new array of regrouped elements.
+     * @example
+     *
+     * var zipped = _.zip([1, 2], [10, 20], [100, 200]);
+     * // => [[1, 10, 100], [2, 20, 200]]
+     *
+     * _.unzipWith(zipped, _.add);
+     * // => [3, 30, 300]
+     */
+    function unzipWith(array, iteratee, thisArg) {
+      var length = array ? array.length : 0;
+      if (!length) {
+        return [];
+      }
+      var result = unzip(array);
+      if (iteratee == null) {
+        return result;
+      }
+      iteratee = bindCallback(iteratee, thisArg, 4);
+      return arrayMap(result, function(group) {
+        return arrayReduce(group, iteratee, undefined, true);
+      });
+    }
+
+    /**
+     * Creates an array excluding all provided values using
+     * [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
+     * for equality comparisons.
      *
      * @static
      * @memberOf _
@@ -5917,7 +5955,7 @@ process.umask = function() { return 0; };
      * // => [3]
      */
     var without = restParam(function(array, values) {
-      return (isArray(array) || isArguments(array))
+      return isArrayLike(array)
         ? baseDifference(array, values)
         : [];
     });
@@ -5942,7 +5980,7 @@ process.umask = function() { return 0; };
 
       while (++index < length) {
         var array = arguments[index];
-        if (isArray(array) || isArguments(array)) {
+        if (isArrayLike(array)) {
           var result = result
             ? baseDifference(result, array).concat(baseDifference(array, result))
             : array;
@@ -6008,7 +6046,37 @@ process.umask = function() { return 0; };
       return result;
     }
 
-    /*------------------------------------------------------------------------*/
+    /**
+     * This method is like `_.zip` except that it accepts an iteratee to specify
+     * how grouped values should be combined. The `iteratee` is bound to `thisArg`
+     * and invoked with four arguments: (accumulator, value, index, group).
+     *
+     * @static
+     * @memberOf _
+     * @category Array
+     * @param {...Array} [arrays] The arrays to process.
+     * @param {Function} [iteratee] The function to combine grouped values.
+     * @param {*} [thisArg] The `this` binding of `iteratee`.
+     * @returns {Array} Returns the new array of grouped elements.
+     * @example
+     *
+     * _.zipWith([1, 2], [10, 20], [100, 200], _.add);
+     * // => [111, 222]
+     */
+    var zipWith = restParam(function(arrays) {
+      var length = arrays.length,
+          iteratee = arrays[length - 2],
+          thisArg = arrays[length - 1];
+
+      if (length > 2 && typeof iteratee == 'function') {
+        length -= 2;
+      } else {
+        iteratee = (length > 1 && typeof thisArg == 'function') ? (--length, thisArg) : undefined;
+        thisArg = undefined;
+      }
+      arrays.length = length;
+      return unzipWith(arrays, iteratee, thisArg);
+    });
 
     /**
      * Creates a `lodash` object that wraps `value` with explicit method
@@ -6260,8 +6328,6 @@ process.umask = function() { return 0; };
       return baseWrapperValue(this.__wrapped__, this.__actions__);
     }
 
-    /*------------------------------------------------------------------------*/
-
     /**
      * Creates an array of elements corresponding to the given keys, or indexes,
      * of `collection`. Keys may be specified as individual arguments or as arrays
@@ -6283,10 +6349,6 @@ process.umask = function() { return 0; };
      * // => ['barney', 'pebbles']
      */
     var at = restParam(function(collection, props) {
-      var length = collection ? getLength(collection) : 0;
-      if (isLength(length)) {
-        collection = toIterable(collection);
-      }
       return baseAt(collection, baseFlatten(props));
     });
 
@@ -6659,13 +6721,10 @@ process.umask = function() { return 0; };
     });
 
     /**
-     * Checks if `value` is in `collection` using `SameValueZero` for equality
-     * comparisons. If `fromIndex` is negative, it is used as the offset from
-     * the end of `collection`.
-     *
-     * **Note:** [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
-     * comparisons are like strict equality comparisons, e.g. `===`, except that
-     * `NaN` matches `NaN`.
+     * Checks if `value` is in `collection` using
+     * [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
+     * for equality comparisons. If `fromIndex` is negative, it is used as the offset
+     * from the end of `collection`.
      *
      * @static
      * @memberOf _
@@ -6785,8 +6844,7 @@ process.umask = function() { return 0; };
       var index = -1,
           isFunc = typeof path == 'function',
           isProp = isKey(path),
-          length = getLength(collection),
-          result = isLength(length) ? Array(length) : [];
+          result = isArrayLike(collection) ? Array(collection.length) : [];
 
       baseEach(collection, function(value) {
         var func = isFunc ? path : (isProp && value != null && value[path]);
@@ -6815,10 +6873,11 @@ process.umask = function() { return 0; };
      * `_.every`, `_.filter`, `_.map`, `_.mapValues`, `_.reject`, and `_.some`.
      *
      * The guarded methods are:
-     * `ary`, `callback`, `chunk`, `clone`, `create`, `curry`, `curryRight`, `drop`,
-     * `dropRight`, `every`, `fill`, `flatten`, `invert`, `max`, `min`, `parseInt`,
-     * `slice`, `sortBy`, `take`, `takeRight`, `template`, `trim`, `trimLeft`,
-     * `trimRight`, `trunc`, `random`, `range`, `sample`, `some`, `uniq`, and `words`
+     * `ary`, `callback`, `chunk`, `clone`, `create`, `curry`, `curryRight`,
+     * `drop`, `dropRight`, `every`, `fill`, `flatten`, `invert`, `max`, `min`,
+     * `parseInt`, `slice`, `sortBy`, `take`, `takeRight`, `template`, `trim`,
+     * `trimLeft`, `trimRight`, `trunc`, `random`, `range`, `sample`, `some`,
+     * `sum`, `uniq`, and `words`
      *
      * @static
      * @memberOf _
@@ -7006,22 +7065,11 @@ process.umask = function() { return 0; };
      * }, []);
      * // => [4, 5, 2, 3, 0, 1]
      */
-    var reduceRight =  createReduce(arrayReduceRight, baseEachRight);
+    var reduceRight = createReduce(arrayReduceRight, baseEachRight);
 
     /**
      * The opposite of `_.filter`; this method returns the elements of `collection`
      * that `predicate` does **not** return truthy for.
-     *
-     * If a property name is provided for `predicate` the created `_.property`
-     * style callback returns the property value of the given element.
-     *
-     * If a value is also provided for `thisArg` the created `_.matchesProperty`
-     * style callback returns `true` for elements that have a matching property
-     * value, else `false`.
-     *
-     * If an object is provided for `predicate` the created `_.matches` style
-     * callback returns `true` for elements that have the properties of the given
-     * object, else `false`.
      *
      * @static
      * @memberOf _
@@ -7401,8 +7449,6 @@ process.umask = function() { return 0; };
       return filter(collection, baseMatches(source));
     }
 
-    /*------------------------------------------------------------------------*/
-
     /**
      * Gets the number of milliseconds that have elapsed since the Unix epoch
      * (1 January 1970 00:00:00 UTC).
@@ -7420,8 +7466,6 @@ process.umask = function() { return 0; };
     var now = nativeNow || function() {
       return new Date().getTime();
     };
-
-    /*------------------------------------------------------------------------*/
 
     /**
      * The opposite of `_.before`; this method creates a function that invokes
@@ -8402,8 +8446,6 @@ process.umask = function() { return 0; };
       return createWrapper(wrapper, PARTIAL_FLAG, null, [value], []);
     }
 
-    /*------------------------------------------------------------------------*/
-
     /**
      * Creates a clone of `value`. If `isDeep` is `true` nested objects are cloned,
      * otherwise they are assigned by reference. If `customizer` is provided it is
@@ -8535,8 +8577,7 @@ process.umask = function() { return 0; };
      * // => false
      */
     function isArguments(value) {
-      var length = isObjectLike(value) ? value.length : undefined;
-      return isLength(length) && objToString.call(value) == argsTag;
+      return isObjectLike(value) && isArrayLike(value) && objToString.call(value) == argsTag;
     }
 
     /**
@@ -8657,10 +8698,9 @@ process.umask = function() { return 0; };
       if (value == null) {
         return true;
       }
-      var length = getLength(value);
-      if (isLength(length) && (isArray(value) || isString(value) || isArguments(value) ||
+      if (isArrayLike(value) && (isArray(value) || isString(value) || isArguments(value) ||
           (isObjectLike(value) && isFunction(value.splice)))) {
-        return !length;
+        return !value.length;
       }
       return !keys(value).length;
     }
@@ -9050,7 +9090,7 @@ process.umask = function() { return 0; };
      * // => false
      */
     function isRegExp(value) {
-      return (isObjectLike(value) && objToString.call(value) == regexpTag) || false;
+      return isObjectLike(value) && objToString.call(value) == regexpTag;
     }
 
     /**
@@ -9166,8 +9206,6 @@ process.umask = function() { return 0; };
       return baseCopy(value, keysIn(value));
     }
 
-    /*------------------------------------------------------------------------*/
-
     /**
      * Assigns own enumerable properties of source object(s) to the destination
      * object. Subsequent sources overwrite property assignments of previous sources.
@@ -9177,7 +9215,6 @@ process.umask = function() { return 0; };
      *
      * **Note:** This method mutates `object` and is based on
      * [`Object.assign`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.assign).
-     *
      *
      * @static
      * @memberOf _
@@ -9650,12 +9687,9 @@ process.umask = function() { return 0; };
      * // => ['0', '1']
      */
     var keys = !nativeKeys ? shimKeys : function(object) {
-      if (object) {
-        var Ctor = object.constructor,
-            length = object.length;
-      }
+      var Ctor = object != null && object.constructor;
       if ((typeof Ctor == 'function' && Ctor.prototype === object) ||
-          (typeof object != 'function' && isLength(length))) {
+          (typeof object != 'function' && isArrayLike(object))) {
         return shimKeys(object);
       }
       return isObject(object) ? nativeKeys(object) : [];
@@ -9713,6 +9747,28 @@ process.umask = function() { return 0; };
     }
 
     /**
+     * The opposite of `_.mapValues`; this method creates an object with the
+     * same values as `object` and keys generated by running each own enumerable
+     * property of `object` through `iteratee`.
+     *
+     * @static
+     * @memberOf _
+     * @category Object
+     * @param {Object} object The object to iterate over.
+     * @param {Function|Object|string} [iteratee=_.identity] The function invoked
+     *  per iteration.
+     * @param {*} [thisArg] The `this` binding of `iteratee`.
+     * @returns {Object} Returns the new mapped object.
+     * @example
+     *
+     * _.mapKeys({ 'a': 1, 'b': 2 }, function(value, key) {
+     *   return key + value;
+     * });
+     * // => { 'a1': 1, 'b2': 2 }
+     */
+    var mapKeys = createObjectMapper(true);
+
+    /**
      * Creates an object with the same keys as `object` and values generated by
      * running each own enumerable property of `object` through `iteratee`. The
      * iteratee function is bound to `thisArg` and invoked with three arguments:
@@ -9753,15 +9809,7 @@ process.umask = function() { return 0; };
      * _.mapValues(users, 'age');
      * // => { 'fred': 40, 'pebbles': 1 } (iteration order is not guaranteed)
      */
-    function mapValues(object, iteratee, thisArg) {
-      var result = {};
-      iteratee = getCallback(iteratee, thisArg, 3);
-
-      baseForOwn(object, function(value, key, object) {
-        result[key] = iteratee(value, key, object);
-      });
-      return result;
-    }
+    var mapValues = createObjectMapper();
 
     /**
      * Recursively merges own enumerable properties of the source object(s), that
@@ -9816,11 +9864,6 @@ process.umask = function() { return 0; };
     /**
      * The opposite of `_.pick`; this method creates an object composed of the
      * own and inherited enumerable properties of `object` that are not omitted.
-     * Property names may be specified as individual arguments or as arrays of
-     * property names. If `predicate` is provided it is invoked for each property
-     * of `object` omitting the properties `predicate` returns truthy for. The
-     * predicate is bound to `thisArg` and invoked with three arguments:
-     * (value, key, object).
      *
      * @static
      * @memberOf _
@@ -10114,8 +10157,6 @@ process.umask = function() { return 0; };
       return baseValues(object, keysIn(object));
     }
 
-    /*------------------------------------------------------------------------*/
-
     /**
      * Checks if `n` is between `start` and up to but not including, `end`. If
      * `end` is not specified it is set to `start` with `start` then set to `0`.
@@ -10219,8 +10260,6 @@ process.umask = function() { return 0; };
       }
       return baseRandom(min, max);
     }
-
-    /*------------------------------------------------------------------------*/
 
     /**
      * Converts `string` to [camel case](https://en.wikipedia.org/wiki/CamelCase).
@@ -11087,8 +11126,6 @@ process.umask = function() { return 0; };
       return string.match(pattern || reWords) || [];
     }
 
-    /*------------------------------------------------------------------------*/
-
     /**
      * Attempts to invoke `func`, returning either the result or the caught error
      * object. Any additional arguments are provided to `func` when it is invoked.
@@ -11159,7 +11196,9 @@ process.umask = function() { return 0; };
       if (guard && isIterateeCall(func, thisArg, guard)) {
         thisArg = null;
       }
-      return baseCallback(func, thisArg);
+      return isObjectLike(func)
+        ? matches(func)
+        : baseCallback(func, thisArg);
     }
 
     /**
@@ -11284,7 +11323,7 @@ process.umask = function() { return 0; };
     var method = restParam(function(path, args) {
       return function(object) {
         return invokePath(object, path, args);
-      }
+      };
     });
 
     /**
@@ -11621,8 +11660,6 @@ process.umask = function() { return 0; };
       return baseToString(prefix) + id;
     }
 
-    /*------------------------------------------------------------------------*/
-
     /**
      * Adds two numbers.
      *
@@ -11787,8 +11824,6 @@ process.umask = function() { return 0; };
         : baseSum(collection, iteratee);
     }
 
-    /*------------------------------------------------------------------------*/
-
     // Ensure wrappers are instances of `baseLodash`.
     lodash.prototype = baseLodash.prototype;
 
@@ -11859,6 +11894,7 @@ process.umask = function() { return 0; };
     lodash.keys = keys;
     lodash.keysIn = keysIn;
     lodash.map = map;
+    lodash.mapKeys = mapKeys;
     lodash.mapValues = mapValues;
     lodash.matches = matches;
     lodash.matchesProperty = matchesProperty;
@@ -11907,6 +11943,7 @@ process.umask = function() { return 0; };
     lodash.union = union;
     lodash.uniq = uniq;
     lodash.unzip = unzip;
+    lodash.unzipWith = unzipWith;
     lodash.values = values;
     lodash.valuesIn = valuesIn;
     lodash.where = where;
@@ -11915,6 +11952,7 @@ process.umask = function() { return 0; };
     lodash.xor = xor;
     lodash.zip = zip;
     lodash.zipObject = zipObject;
+    lodash.zipWith = zipWith;
 
     // Add aliases.
     lodash.backflow = flowRight;
@@ -11932,8 +11970,6 @@ process.umask = function() { return 0; };
 
     // Add functions to `lodash.prototype`.
     mixin(lodash, lodash);
-
-    /*------------------------------------------------------------------------*/
 
     // Add functions that return unwrapped values when chaining.
     lodash.add = add;
@@ -12038,8 +12074,6 @@ process.umask = function() { return 0; };
       return source;
     }()), false);
 
-    /*------------------------------------------------------------------------*/
-
     // Add functions capable of returning wrapped and unwrapped values when chaining.
     lodash.sample = sample;
 
@@ -12051,8 +12085,6 @@ process.umask = function() { return 0; };
         return sample(value, n);
       });
     };
-
-    /*------------------------------------------------------------------------*/
 
     /**
      * The semantic version number.
@@ -12164,8 +12196,13 @@ process.umask = function() { return 0; };
 
     LazyWrapper.prototype.slice = function(start, end) {
       start = start == null ? 0 : (+start || 0);
-      var result = start < 0 ? this.takeRight(-start) : this.drop(start);
 
+      var result = this;
+      if (start < 0) {
+        result = this.takeRight(-start);
+      } else if (start) {
+        result = this.drop(start);
+      }
       if (end !== undefined) {
         end = (+end || 0);
         result = end < 0 ? result.dropRight(-end) : result.take(end - start);
@@ -12188,7 +12225,6 @@ process.umask = function() { return 0; };
 
       lodash.prototype[methodName] = function() {
         var args = arguments,
-            length = args.length,
             chainAll = this.__chain__,
             value = this.__wrapped__,
             isHybrid = !!this.__actions__.length,
@@ -12277,8 +12313,6 @@ process.umask = function() { return 0; };
     return lodash;
   }
 
-  /*--------------------------------------------------------------------------*/
-
   // Export lodash.
   var _ = runInContext();
 
@@ -12314,244 +12348,159 @@ process.umask = function() { return 0; };
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],6:[function(require,module,exports){
-var WAAClock = require('./lib/WAAClock')
+},{}],5:[function(require,module,exports){
+module.exports = require('./lib/wa-metro');
+},{"./lib/wa-metro":6}],6:[function(require,module,exports){
+var work = require('webworkify');
 
-module.exports = WAAClock
-if (typeof window !== 'undefined') window.WAAClock = WAAClock
+function Metro(context, callback) {
+  var self = this;
 
-},{"./lib/WAAClock":7}],7:[function(require,module,exports){
-(function (process){
-var isBrowser = (typeof window !== 'undefined')
+  if (!context) throw new Error('Context is mandatory');
+  if (!callback) throw new Error('Callback is mandatory');
 
-if (isBrowser && !AudioContext)
-  throw new Error('This browser doesn\'t seem to support web audio API')
+  this.context = context;
+  this.steps = 16;
+  this.tempo = 120;
+  this.callback = callback;
+  this.look_ahead = 1.0;
 
-var CLOCK_DEFAULTS = {
-  toleranceLate: 0.10,
-  toleranceEarly: 0.001
-}
+  this._step = 1;
+  this._scheduler_interval = 20;
+  this._next_event_time = 0.0;
+  this._first = true;
+  this._is_running = false;
 
-// ==================== Event ==================== //
-var Event = function(clock, deadline, func) {
-  this.clock = clock
-  this.func = func
-  this._cleared = false // Flag used to clear an event inside callback
+  this._worker = work(require('./worker.js'));
 
-  this.toleranceLate = clock.toleranceLate
-  this.toleranceEarly = clock.toleranceEarly
-  this._latestTime = null
-  this._earliestTime = null
-  this.deadline = null
-  this.repeatTime = null
-
-  this.schedule(deadline)
-}
-
-// Unschedules the event
-Event.prototype.clear = function() {
-  this.clock._removeEvent(this)
-  this._cleared = true
-  return this
-}
-
-// Sets the event to repeat every `time` seconds.
-Event.prototype.repeat = function(time) {
-  if (time === 0)
-    throw new Error('delay cannot be 0')
-  this.repeatTime = time
-  if (!this.clock._hasEvent(this))
-    this.schedule(this.deadline + this.repeatTime)
-  return this
-}
-
-// Sets the time tolerance of the event.
-// The event will be executed in the interval `[deadline - early, deadline + late]`
-// If the clock fails to execute the event in time, the event will be dropped.
-Event.prototype.tolerance = function(values) {
-  if (typeof values.late === 'number')
-    this.toleranceLate = values.late
-  if (typeof values.early === 'number')
-    this.toleranceEarly = values.early
-  this._refreshEarlyLateDates()
-  if (this.clock._hasEvent(this)) {
-    this.clock._removeEvent(this)
-    this.clock._insertEvent(this)
-  }
-  return this
-}
-
-// Returns true if the event is repeated, false otherwise
-Event.prototype.isRepeated = function() { return this.repeatTime !== null }
-
-// Schedules the event to be ran before `deadline`.
-// If the time is within the event tolerance, we handle the event immediately.
-// If the event was already scheduled at a different time, it is rescheduled.
-Event.prototype.schedule = function(deadline) {
-  this._cleared = false
-  this.deadline = deadline
-  this._refreshEarlyLateDates()
-
-  if (this.clock.context.currentTime >= this._earliestTime) {
-    this._execute()
-  
-  } else if (this.clock._hasEvent(this)) {
-    this.clock._removeEvent(this)
-    this.clock._insertEvent(this)
-  
-  } else this.clock._insertEvent(this)
-}
-
-Event.prototype.timeStretch = function(tRef, ratio) {
-  if (this.isRepeated())
-    this.repeatTime = this.repeatTime * ratio
-
-  var deadline = tRef + ratio * (this.deadline - tRef)
-  // If the deadline is too close or past, and the event has a repeat,
-  // we calculate the next repeat possible in the stretched space.
-  if (this.isRepeated()) {
-    while (this.clock.context.currentTime >= deadline - this.toleranceEarly)
-      deadline += this.repeatTime
-  }
-  this.schedule(deadline)
-}
-
-// Executes the event
-Event.prototype._execute = function() {
-  this.clock._removeEvent(this)
-
-  if (this.clock.context.currentTime < this._latestTime)
-    this.func(this)
-  else {
-    if (this.onexpired) this.onexpired(this)
-    console.warn('event expired')
-  }
-  // In the case `schedule` is called inside `func`, we need to avoid
-  // overrwriting with yet another `schedule`.
-  if (!this.clock._hasEvent(this) && this.isRepeated() && !this._cleared)
-    this.schedule(this.deadline + this.repeatTime) 
-}
-
-// Updates cached times
-Event.prototype._refreshEarlyLateDates = function() {
-  this._latestTime = this.deadline + this.toleranceLate
-  this._earliestTime = this.deadline - this.toleranceEarly
-}
-
-// ==================== WAAClock ==================== //
-var WAAClock = module.exports = function(context, opts) {
-  var self = this
-  opts = opts || {}
-  this.toleranceEarly = opts.toleranceEarly || CLOCK_DEFAULTS.toleranceEarly
-  this.toleranceLate = opts.toleranceLate || CLOCK_DEFAULTS.toleranceLate
-  this.context = context
-  this._events = []
-  this._started = false
-}
-
-// ---------- Public API ---------- //
-// Schedules `func` to run after `delay` seconds.
-WAAClock.prototype.setTimeout = function(func, delay) {
-  return this._createEvent(func, this._absTime(delay))
-}
-
-// Schedules `func` to run before `deadline`.
-WAAClock.prototype.callbackAtTime = function(func, deadline) {
-  return this._createEvent(func, deadline)
-}
-
-// Stretches `deadline` and `repeat` of all scheduled `events` by `ratio`, keeping
-// their relative distance to `tRef`. In fact this is equivalent to changing the tempo.
-WAAClock.prototype.timeStretch = function(tRef, events, ratio) {
-  events.forEach(function(event) { event.timeStretch(tRef, ratio) })
-  return events
-}
-
-// ---------- Private ---------- //
-
-// Removes all scheduled events and starts the clock 
-WAAClock.prototype.start = function() {
-  if (this._started === false) {
-    var self = this
-    this._started = true
-    this._events = []
-
-    var bufferSize = 256
-    // We have to keep a reference to the node to avoid garbage collection
-    this._clockNode = this.context.createScriptProcessor(bufferSize, 1, 1)
-    this._clockNode.connect(this.context.destination)
-    this._clockNode.onaudioprocess = function () {
-      process.nextTick(function() { self._tick() })
+  this._worker.onmessage = function (event) {
+    if (event.data === 'tick') {
+      self._scheduler();
     }
+  };
+
+  this._worker.postMessage({
+    'interval': self._scheduler_interval
+  });
+}
+
+Metro.prototype.start = function (callback) {
+  if (this._is_running) {
+    console.log('already started');
+    return;
   }
-}
+  this._is_running = true;
+  this._worker.postMessage('start');
+};
 
-// Stops the clock
-WAAClock.prototype.stop = function() {
-  if (this._started === true) {
-    this._started = false
-    this._clockNode.disconnect()
-  }  
-}
+Metro.prototype.pause = function () {
+  this._is_running = false;
+  this._worker.postMessage('stop');
+};
 
-// This function is ran periodically, and at each tick it executes
-// events for which `currentTime` is included in their tolerance interval.
-WAAClock.prototype._tick = function() {
-  var event = this._events.shift()
+Metro.prototype.stop = function () {
+  this._first = true;
+  this._is_running = false;
+  this._worker.postMessage('stop');
+};
 
-  while(event && event._earliestTime <= this.context.currentTime) {
-    event._execute()
-    event = this._events.shift()
+Metro.prototype._scheduler = function _scheduler() {
+  var self = this;
+  while (this._next_event_time < this.context.currentTime + this.look_ahead) {
+    this.callback(self._next_event_time, self._step);
+    this._next();
   }
+};
 
-  // Put back the last event
-  if(event) this._events.unshift(event)
-}
-
-// Creates an event and insert it to the list
-WAAClock.prototype._createEvent = function(func, deadline) {
-  return new Event(this, deadline, func)
-}
-
-// Inserts an event to the list
-WAAClock.prototype._insertEvent = function(event) {
-  this._events.splice(this._indexByTime(event._earliestTime), 0, event)
-}
-
-// Removes an event from the list
-WAAClock.prototype._removeEvent = function(event) {
-  var ind = this._events.indexOf(event)
-  if (ind !== -1) this._events.splice(ind, 1)
-}
-
-// Returns true if `event` is in queue, false otherwise
-WAAClock.prototype._hasEvent = function(event) {
- return this._events.indexOf(event) !== -1
-}
-
-// Returns the index of the first event whose deadline is >= to `deadline`
-WAAClock.prototype._indexByTime = function(deadline) {
-  // performs a binary search
-  var low = 0
-    , high = this._events.length
-    , mid
-  while (low < high) {
-    mid = Math.floor((low + high) / 2)
-    if (this._events[mid]._earliestTime < deadline)
-      low = mid + 1
-    else high = mid
+Metro.prototype._next = function _next() {
+  this._step++;
+  if (this._first) {
+    this._step = 1;
+    this._next_event_time = this.context.currentTime;
+    this._first = false;
   }
-  return low
-}
+  if (this._step > this.steps) {
+    this._step = 1;
+  }
+  this._next_event_time += ((60.0 / this.tempo) * 4) / this.steps;
+};
 
-// Converts from relative time to absolute time
-WAAClock.prototype._absTime = function(relTime) {
-  return relTime + this.context.currentTime
-}
+module.exports = Metro;
+},{"./worker.js":7,"webworkify":8}],7:[function(require,module,exports){
+module.exports = function (self) {
+  var interval = 25;
+  var timer = null;
+  self.onmessage = function (event) {
+    if (event.data === 'interval') {
+      interval = event.data.interval;
+    }
+    if (event.data === 'start') {
+      timer = setInterval(function () {
+        postMessage('tick');
+      }, interval);
+    }
 
-// Converts from absolute time to relative time 
-WAAClock.prototype._relTime = function(absTime) {
-  return absTime - this.context.currentTime
-}
-}).call(this,require('_process'))
-},{"_process":4}]},{},[1]);
+    if (event.data === 'stop') {
+      clearInterval(timer);
+      timer = null;
+    }
+  };
+};
+},{}],8:[function(require,module,exports){
+var bundleFn = arguments[3];
+var sources = arguments[4];
+var cache = arguments[5];
+
+var stringify = JSON.stringify;
+
+module.exports = function (fn) {
+    var keys = [];
+    var wkey;
+    var cacheKeys = Object.keys(cache);
+    
+    for (var i = 0, l = cacheKeys.length; i < l; i++) {
+        var key = cacheKeys[i];
+        if (cache[key].exports === fn) {
+            wkey = key;
+            break;
+        }
+    }
+    
+    if (!wkey) {
+        wkey = Math.floor(Math.pow(16, 8) * Math.random()).toString(16);
+        var wcache = {};
+        for (var i = 0, l = cacheKeys.length; i < l; i++) {
+            var key = cacheKeys[i];
+            wcache[key] = key;
+        }
+        sources[wkey] = [
+            Function(['require','module','exports'], '(' + fn + ')(self)'),
+            wcache
+        ];
+    }
+    var skey = Math.floor(Math.pow(16, 8) * Math.random()).toString(16);
+    
+    var scache = {}; scache[wkey] = wkey;
+    sources[skey] = [
+        Function(['require'],'require(' + stringify(wkey) + ')(self)'),
+        scache
+    ];
+    
+    var src = '(' + bundleFn + ')({'
+        + Object.keys(sources).map(function (key) {
+            return stringify(key) + ':['
+                + sources[key][0]
+                + ',' + stringify(sources[key][1]) + ']'
+            ;
+        }).join(',')
+        + '},{},[' + stringify(skey) + '])'
+    ;
+    
+    var URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
+    
+    return new Worker(URL.createObjectURL(
+        new Blob([src], { type: 'text/javascript' })
+    ));
+};
+
+},{}]},{},[1]);
