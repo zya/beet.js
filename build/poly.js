@@ -43,7 +43,7 @@ poly.add(layer);
 poly.add(layer2);
 poly.add(layer3);
 poly.start();
-
+sequence.shift();
 setTimeout(function () {
   console.log('deleting');
   poly.remove(layer2);
@@ -148,6 +148,10 @@ function Sequence(pulses, steps) {
 
 Sequence.prototype.update = function (pulses, steps) {
   this.seq = bjork(pulses, steps).split('');
+};
+
+Sequence.prototype.shift = function (value) {
+  console.log(this.seq.shift());
 };
 
 module.exports = Sequence;

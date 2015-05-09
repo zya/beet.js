@@ -42,7 +42,7 @@ poly.add(layer);
 poly.add(layer2);
 poly.add(layer3);
 poly.start();
-
+sequence.shift();
 setTimeout(function () {
   console.log('deleting');
   poly.remove(layer2);
