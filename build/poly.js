@@ -11,14 +11,14 @@ var poly = new Poly({
   tempo: 90
 });
 
-function on(time) {
+function off(time) {
   var osc = context.createOscillator();
   osc.connect(gain);
   osc.start(time);
   osc.stop(time + 0.1);
 }
 
-function off(time) {
+function on(time) {
   var osc = context.createOscillator();
   osc.connect(gain);
   osc.frequency.value = 880;
@@ -26,33 +26,16 @@ function off(time) {
   osc.stop(time + 0.15);
 }
 
-function off2(time) {
-  var osc = context.createOscillator();
-  osc.connect(gain);
-  osc.frequency.value = 220;
-  osc.start(time);
-  osc.stop(time + 0.15);
-}
-var sequence = poly.sequence(4, 4);
-var sequence2 = poly.sequence(4, 4);
-var sequence3 = poly.sequence(4, 4);
+var sequence = poly.sequence(1, 4);
 var layer = poly.layer(sequence, on, off);
-var layer2 = poly.layer(sequence2, off, off);
-var layer3 = poly.layer(sequence3, off2, off);
 poly.add(layer);
-poly.add(layer2);
-poly.add(layer3);
 poly.start();
-sequence.shift();
+
 setTimeout(function () {
-  console.log('deleting');
-  poly.remove(layer2);
-  console.log('pausing');
-  poly.pause();
+  sequence.shift(1);
   setTimeout(function () {
-    console.log('starting');
-    poly.start();
-  }, 3000);
+    sequence.shift(5);
+  }, 1000);
 }, 3000);
 },{"./lib/poly":3}],2:[function(require,module,exports){
 var Metro = require('wa-metro');
@@ -62,6 +45,7 @@ function Layer(context, tempo, sequence, on, off) {
   this.on = on;
   this.off = off;
   this.metro = new Metro(context, function (time, step) {
+    console.log(sequence.seq);
     if (self.metro.steps !== sequence.seq.length) {
       self.metro.steps = sequence.seq.length;
     }
@@ -150,8 +134,12 @@ Sequence.prototype.update = function (pulses, steps) {
   this.seq = bjork(pulses, steps).split('');
 };
 
-Sequence.prototype.shift = function (value) {
-  console.log(this.seq.shift());
+Sequence.prototype.shift = function (offset) {
+  var off = offset > this.seq.length ? offset = offset - this.seq.length : offset;
+  var t = this.seq.splice(0, off);
+  for (var i = 0; i < t.length; i++) {
+    this.seq.push(t[i]);
+  }
 };
 
 module.exports = Sequence;
