@@ -21,22 +21,33 @@ function on(time) {
 function off(time) {
   var osc = context.createOscillator();
   osc.connect(gain);
+  osc.frequency.value = 880;
+  osc.start(time);
+  osc.stop(time + 0.15);
+}
+
+function off2(time) {
+  var osc = context.createOscillator();
+  osc.connect(gain);
   osc.frequency.value = 220;
   osc.start(time);
   osc.stop(time + 0.15);
 }
-var sequence = poly.sequence(1, 4);
+var sequence = poly.sequence(4, 4);
+var sequence2 = poly.sequence(4, 4);
+var sequence3 = poly.sequence(4, 4);
 var layer = poly.layer(sequence, on, off);
+var layer2 = poly.layer(sequence2, off, off);
+var layer3 = poly.layer(sequence3, off2, off);
 poly.add(layer);
+poly.add(layer2);
+poly.add(layer3);
 poly.start();
 
 setTimeout(function () {
-  sequence.update(1, 5);
+  console.log('deleting');
+  poly.remove(layer2);
 }, 3000);
-
-// var Metro = require('wa-metro');
-// var metro = new Metro(context, on);
-// metro.start();
 },{"./lib/poly":3}],2:[function(require,module,exports){
 var Metro = require('wa-metro');
 
@@ -70,9 +81,12 @@ Layer.prototype.stop = function () {
   this.metro.stop();
 };
 
+Layer.prototype.delete = function () {
+  delete this.metro;
+};
+
 module.exports = Layer;
 },{"wa-metro":7}],3:[function(require,module,exports){
-var Metro = require('wa-metro');
 var Sequence = require('./sequence');
 var Layer = require('./layer');
 
@@ -95,6 +109,14 @@ Poly.prototype.add = function (layer) {
   this.layers.push(layer);
 };
 
+Poly.prototype.remove = function (layer) {
+  var index = this.layers.indexOf(layer);
+  var l = this.layers[index];
+  l.metro.stop();
+  delete l.metro;
+  this.layers.splice(index, 1);
+};
+
 Poly.prototype.start = function () {
   this.layers.forEach(function (layer) {
     layer.start();
@@ -102,7 +124,7 @@ Poly.prototype.start = function () {
 };
 
 module.exports = Poly;
-},{"./layer":2,"./sequence":4,"wa-metro":7}],4:[function(require,module,exports){
+},{"./layer":2,"./sequence":4}],4:[function(require,module,exports){
 var bjork = require('bjorklund');
 
 function Sequence(pulses, steps) {
