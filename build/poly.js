@@ -37,18 +37,13 @@ setTimeout(function () {
 // var Metro = require('wa-metro');
 // var metro = new Metro(context, on);
 // metro.start();
-},{"./lib/poly":2}],2:[function(require,module,exports){
+},{"./lib/poly":3}],2:[function(require,module,exports){
 var Metro = require('wa-metro');
-var bjork = require('bjorklund');
 
 function Layer(context, tempo, sequence, on, off) {
   var self = this;
   this.on = on;
   this.off = off;
-  this.id = Math.random() * 10000;
-  setInterval(function () {
-    console.log(sequence);
-  }, 500);
   this.metro = new Metro(context, function (time, step) {
     if (self.metro.steps !== sequence.seq.length) {
       self.metro.steps = sequence.seq.length;
@@ -75,14 +70,11 @@ Layer.prototype.stop = function () {
   this.metro.stop();
 };
 
-function Sequence(pulses, steps) {
-  this.seq = bjork(pulses, steps).split('');
-  return this;
-}
-
-Sequence.prototype.update = function (pulses, steps) {
-  this.seq = bjork(pulses, steps).split('');
-};
+module.exports = Layer;
+},{"wa-metro":7}],3:[function(require,module,exports){
+var Metro = require('wa-metro');
+var Sequence = require('./sequence');
+var Layer = require('./layer');
 
 function Poly(opts) {
   this.context = opts.context;
@@ -110,7 +102,20 @@ Poly.prototype.start = function () {
 };
 
 module.exports = Poly;
-},{"bjorklund":3,"wa-metro":5}],3:[function(require,module,exports){
+},{"./layer":2,"./sequence":4,"wa-metro":7}],4:[function(require,module,exports){
+var bjork = require('bjorklund');
+
+function Sequence(pulses, steps) {
+  this.seq = bjork(pulses, steps).split('');
+  return this;
+}
+
+Sequence.prototype.update = function (pulses, steps) {
+  this.seq = bjork(pulses, steps).split('');
+};
+
+module.exports = Sequence;
+},{"bjorklund":5}],5:[function(require,module,exports){
 var _ = require('lodash');
 
 module.exports = function bjorklund(pulses, length) {
@@ -152,7 +157,7 @@ function generate_zero_based(ones, zeros) {
     return ones.reverse().join().replace(/,/g, '');
   }
 }
-},{"lodash":4}],4:[function(require,module,exports){
+},{"lodash":6}],6:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -12358,9 +12363,9 @@ function generate_zero_based(ones, zeros) {
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],5:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 module.exports = require('./lib/wa-metro');
-},{"./lib/wa-metro":6}],6:[function(require,module,exports){
+},{"./lib/wa-metro":8}],8:[function(require,module,exports){
 var work = require('webworkify');
 
 function Metro(context, callback) {
@@ -12436,7 +12441,7 @@ Metro.prototype._next = function _next() {
 };
 
 module.exports = Metro;
-},{"./worker.js":7,"webworkify":8}],7:[function(require,module,exports){
+},{"./worker.js":9,"webworkify":10}],9:[function(require,module,exports){
 module.exports = function (self) {
   var interval = 25;
   var timer = null;
@@ -12456,7 +12461,7 @@ module.exports = function (self) {
     }
   };
 };
-},{}],8:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 var bundleFn = arguments[3];
 var sources = arguments[4];
 var cache = arguments[5];
