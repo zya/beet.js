@@ -47,6 +47,12 @@ poly.start();
 setTimeout(function () {
   console.log('deleting');
   poly.remove(layer2);
+  console.log('pausing');
+  poly.pause();
+  setTimeout(function () {
+    console.log('starting');
+    poly.start();
+  }, 3000);
 }, 3000);
 },{"./lib/poly":3}],2:[function(require,module,exports){
 var Metro = require('wa-metro');
@@ -81,10 +87,6 @@ Layer.prototype.stop = function () {
   this.metro.stop();
 };
 
-Layer.prototype.delete = function () {
-  delete this.metro;
-};
-
 module.exports = Layer;
 },{"wa-metro":7}],3:[function(require,module,exports){
 var Sequence = require('./sequence');
@@ -111,15 +113,27 @@ Poly.prototype.add = function (layer) {
 
 Poly.prototype.remove = function (layer) {
   var index = this.layers.indexOf(layer);
-  var l = this.layers[index];
-  l.metro.stop();
-  delete l.metro;
+  var found = this.layers[index];
+  found.metro.stop();
   this.layers.splice(index, 1);
+  console.log(this.layers);
 };
 
 Poly.prototype.start = function () {
   this.layers.forEach(function (layer) {
     layer.start();
+  });
+};
+
+Poly.prototype.stop = function () {
+  this.layers.forEach(function (layer) {
+    layer.stop();
+  });
+};
+
+Poly.prototype.pause = function () {
+  this.layers.forEach(function (layer) {
+    layer.pause();
   });
 };
 

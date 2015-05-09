@@ -46,4 +46,10 @@ poly.start();
 setTimeout(function () {
   console.log('deleting');
   poly.remove(layer2);
+  console.log('pausing');
+  poly.pause();
+  setTimeout(function () {
+    console.log('starting');
+    poly.start();
+  }, 3000);
 }, 3000);
