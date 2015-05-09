@@ -24,13 +24,16 @@ function off(time) {
   osc.start(time);
   osc.stop(time + 0.15);
 }
-var sequence = poly.sequence(4, 4);
-var sequence2 = poly.sequence(5, 5);
+var sequence = poly.sequence(1, 4);
+var sequence2 = poly.sequence(1, 5);
 var layer = poly.layer(sequence, on, off);
 var layer2 = poly.layer(sequence2, off, off);
 poly.add(layer);
-poly.add(layer2);
 poly.start();
+
+setTimeout(function () {
+  layer.change(sequence2);
+}, 3000);
 
 // var Metro = require('wa-metro');
 // var metro = new Metro(context, on);
