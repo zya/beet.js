@@ -26,14 +26,12 @@ function off(time) {
   osc.stop(time + 0.15);
 }
 var sequence = poly.sequence(1, 4);
-var sequence2 = poly.sequence(1, 5);
 var layer = poly.layer(sequence, on, off);
-var layer2 = poly.layer(sequence2, off, off);
 poly.add(layer);
 poly.start();
 
 setTimeout(function () {
-  layer.change(sequence2);
+  sequence.update(1, 5);
 }, 3000);
 
 // var Metro = require('wa-metro');
@@ -47,16 +45,21 @@ function Layer(context, tempo, sequence, on, off) {
   var self = this;
   this.on = on;
   this.off = off;
-  this.sequence = sequence.seq;
   this.id = Math.random() * 10000;
+  setInterval(function () {
+    console.log(sequence);
+  }, 500);
   this.metro = new Metro(context, function (time, step) {
-    if (self.sequence[step - 1] === '1') {
+    if (self.metro.steps !== sequence.seq.length) {
+      self.metro.steps = sequence.seq.length;
+    }
+    if (sequence.seq[step - 1] === '1') {
       self.on(time, step);
     } else {
       self.off(time, step);
     }
   });
-  this.metro.steps = this.sequence.length;
+  this.metro.steps = sequence.seq.length;
   this.metro.tempo = tempo;
 }
 
@@ -72,15 +75,14 @@ Layer.prototype.stop = function () {
   this.metro.stop();
 };
 
-Layer.prototype.change = function (sequence) {
-  this.sequence = sequence.seq;
-  this.metro.steps = sequence.seq.length;
-};
-
 function Sequence(pulses, steps) {
   this.seq = bjork(pulses, steps).split('');
   return this;
 }
+
+Sequence.prototype.update = function (pulses, steps) {
+  this.seq = bjork(pulses, steps).split('');
+};
 
 function Poly(opts) {
   this.context = opts.context;
