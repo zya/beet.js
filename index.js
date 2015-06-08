@@ -32,7 +32,7 @@ poly.start();
 
 setTimeout(function () {
   sequence.shift(1);
-  setTimeout(function () {
-    sequence.shift(5);
-  }, 1000);
+  // setTimeout(function () {
+  //   sequence.shift(5);
+  // }, 1000);
 }, 3000);
