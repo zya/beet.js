@@ -25,14 +25,27 @@ function on(time) {
   osc.stop(time + 0.15);
 }
 
-var sequence = poly.sequence(1, 4);
-var layer = poly.layer(sequence, on, off);
+var sequence = poly.sequence(4, 4);
+// var sequence2 = poly.sequence(2, 5);
+
+var layer = poly.layer(sequence, on);
+// var layer2 = poly.layer(sequence2, off);
 poly.add(layer);
+// poly.add(layer2);
 poly.start();
 
-setTimeout(function () {
-  sequence.shift(1);
-  // setTimeout(function () {
-  //   sequence.shift(5);
-  // }, 1000);
-}, 3000);
+window.poly = poly;
+window.sequence = sequence;
+
+// setTimeout(function () {
+//   poly.tempo = 180;
+// }, 1000);
+
+// setTimeout(function () {
+//   console.log('test');
+//   sequence.shift(1);
+//   setTimeout(function () {
+//     console.log('test2');
+//     sequence.shift(1);
+//   }, 1000);
+// }, 3000);

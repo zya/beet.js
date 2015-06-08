@@ -11,11 +11,13 @@
   "license": "ISC",
   "dependencies": {
     "bjorklund": "^1.0.3",
-    "wa-metro": "^1.0.3"
+    "wa-metro": "^1.0.3",
+    "watchjs": "0.0.0"
   },
   "devDependencies": {
     "browserify": "^9.0.8",
     "chai": "^2.2.0",
-    "mocha": "^2.2.4"
+    "mocha": "^2.2.4",
+    "watchify": "^3.2.2"
   }
 }
