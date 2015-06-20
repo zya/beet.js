@@ -26,6 +26,9 @@ function callback(time){
   osc.stop(time + 0.1);
 }
 
+// add the layer
+beet.add(layer);
+
 // start the sequencer
 beet.start();
 ````
