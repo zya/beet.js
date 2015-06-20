@@ -1,7 +1,6 @@
 # beet.js
 Polyrhythmic Sequencer library for Web Audio API.
-
-
+The sequencer can have multiple layers where each layer has a different step count. This feature allows the user to create complex [polyrhythms](https://en.wikipedia.org/?title=Polyrhythm) and [euclidean rhythms](http://cgm.cs.mcgill.ca/~godfried/publications/banff.pdf) using a simple api.
 
 ### Example Usage
 ````js
