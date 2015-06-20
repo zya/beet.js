@@ -35,35 +35,35 @@ beet.start();
 ## API
 
 ### Beet
-### `beet.start(time)`
+#### `beet.start(time)`
 
 Starts the sequencer after a given time in seconds.
 
 #### Parameters
 * time - a number in seconds - defaults to 0
 
-### `beet.stop(time)`
+#### `beet.stop(time)`
 
 Stops the sequencer after a given time in seconds and resets the current step number.
 
 #### Parameters
 * time (optional) - a number in seconds - defaults to 0
 
-### `beet.pause(time)`
+#### `beet.pause(time)`
 
 Pauses the sequencer after a given time in seconds but keeps the current step number.
 
 #### Parameters
 * time (optional) - a number in seconds - defaults to 0
 
-### `beet.add(layer)`
+#### `beet.add(layer)`
 
 Adds a given `beet.layer` to the list of layers to play.
 
 #### Parameters
 * layer (Required) - a `beet.layer` object.
 
-### `beet.remove(layer)`
+#### `beet.remove(layer)`
 
 Removes a given `beet.layer` from the list of layers to play.
 
@@ -71,7 +71,7 @@ Removes a given `beet.layer` from the list of layers to play.
 * layer (Required) - a `beet.layer` object.
 
 ### Pattern
-### `beet.pattern(pulses, steps)`
+#### `beet.pattern(pulses, steps)`
 Returns a `pattern` object containing a [bjorklund](https://github.com/zya/bjorklund) sequence with equally distributed number of `pulses` over `steps`.
 
 #### Parameters
@@ -85,7 +85,7 @@ var pattern = beet.pattern(3, 7);
 // '1010100'
 ````
 
-### `.update(pulses, steps)`
+#### `.update(pulses, steps)`
 Updates the pattern object with the new values. You can also update the values directly. See example below.
 
 #### Parameters
@@ -102,7 +102,7 @@ pattern.pulses = 4;
 pattern.steps = 8;
 ````
 
-### `.shift(offset)`
+#### `.shift(offset)`
 Shifts the sequence by the offset and returns the pattern object.
 
 #### Parameters
@@ -113,3 +113,37 @@ Shifts the sequence by the offset and returns the pattern object.
 var pattern = beet.pattern(1, 4); // returns '1000'
 pattern.shift(1) // updates the sequence to '0100'
 ````
+
+### Layer
+#### `layer(pattern, onCallback, offCallback)`
+Creates a `beet.layer` object and returns it.
+
+#### Parameters
+* pattern (required) - a `beet.pattern` object.
+* onCallback (required) - a function to call on pattern's pulses e.g. 1's
+* offCallback (optional) - a function to call on pattern's empty slots e.g. 0's.
+
+#### example
+````js
+var pattern = beet.pattern(1, 4); // returns '1000'
+var layer = beet.layer(pattern, on, off); 
+// on will be called on 1
+// off will be called on 0's
+````
+#### Callback format
+The callbacks are functions that will be called from the scheduler.
+The functions will be called with a `time` and a `step` parameter.
+You can use the `time` parameter for web audio methods. `step` can be used to change audio behaviour according to the current step.
+
+#### example
+````
+function callback (time, step) {
+    var osc = context.createOscillator();
+    osc.connect(context.destination);
+    if(step === 1){
+      osc.frequency.value = 880;
+    }
+    osc.start(time);
+    osc.stop(time + 0.2);
+}
+```` 
