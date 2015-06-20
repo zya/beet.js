@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+</head>
+<body>
+
+</body>
+<script type="text/javascript" src="../../build/beet.min.js"></script>
+<script type="text/javascript">
+  var context = new AudioContext();
+  var beet = new Beet({
+    context: context,
+    tempo: 100
+  });
+
+  var fours = beet.pattern(4,4);
+  var threes = beet.pattern(3,3);
+  var layer = beet.layer(fours, callback1);
+  var layer2 = beet.layer(threes, callback2);
+
+  function callback1 (time, step) {
+    var osc = context.createOscillator();
+    osc.connect(context.destination);
+    osc.start(time);
+    osc.stop(time + 0.2);
+  }
+
+  function callback2 (time, step) {
+    var osc = context.createOscillator();
+    osc.connect(context.destination);
+    osc.frequency.value = 220;
+    osc.start(time);
+    osc.stop(time + 0.2);
+  }
+
+  beet.add(layer);
+  beet.add(layer2);
+  beet.start();
+</script>
+</html>
