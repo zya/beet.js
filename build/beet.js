@@ -4,46 +4,23 @@ var gain = context.createGain();
 gain.connect(context.destination);
 gain.gain.value = 0.2;
 
-var beet = require('./lib/beet');
-var beet = new beet({
+var Beet = require('./lib/beet');
+var beet = new Beet({
   context: context,
   tempo: 90
 });
 
-function off(time) {
+var pattern = beet.pattern(3, 4);
+var layer = beet.layer(pattern, callback);
+beet.add(layer);
+beet.start();
+
+function callback(time, step) {
   var osc = context.createOscillator();
   osc.connect(gain);
   osc.start(time);
   osc.stop(time + 0.1);
 }
-
-function on(time) {
-  var osc = context.createOscillator();
-  osc.connect(gain);
-  osc.frequency.value = 880;
-  osc.start(time);
-  osc.stop(time + 0.15);
-}
-
-var pattern = beet.pattern(3, 4);
-// var pattern2 = beet.pattern(2, 5);
-
-var layer = beet.layer(pattern, on);
-// var layer2 = beet.layer(pattern2, off);
-beet.add(layer);
-// beet.add(layer2);
-beet.start();
-
-window.beet = beet;
-window.pattern = pattern;
-
-
-setTimeout(function () {
-  pattern.shift(1);
-  setTimeout(function () {
-    pattern.shift(1);
-  }, 1000);
-}, 3000);
 },{"./lib/beet":2}],2:[function(require,module,exports){
 var watch = require('watchjs').watch;
 
@@ -82,16 +59,24 @@ Beet.prototype.remove = function (layer) {
   this.layers.splice(index, 1);
 };
 
-Beet.prototype.start = function () {
-  this.layers.forEach(function (layer) {
-    layer.start();
-  });
+Beet.prototype.start = function (when) {
+  var self = this;
+  var start_time = when || 0;
+  setTimeout(function () {
+    self.layers.forEach(function (layer) {
+      layer.start();
+    });
+  }, start_time * 1000);
 };
 
-Beet.prototype.stop = function () {
-  this.layers.forEach(function (layer) {
-    layer.stop();
-  });
+Beet.prototype.stop = function (when) {
+  var self = this;
+  var start_time = when || 0;
+  setTimeout(function () {
+    self.layers.forEach(function (layer) {
+      layer.stop();
+    });
+  }, start_time * 1000);
 };
 
 Beet.prototype.pause = function () {
