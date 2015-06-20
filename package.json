@@ -1,10 +1,11 @@
 {
-  "name": "poly",
-  "version": "0.0.0",
-  "description": "Polyrhythms in web audio",
+  "name": "beet.js",
+  "version": "1.0.0",
+  "description": "Polyrhythmic Sequencer for Web Audio API",
   "main": "index.js",
   "scripts": {
     "build": "browserify index.js > build/beet.js; browserify index.js | uglifyjs > build/beet.min.js",
+    "watch": "watchify index.js -o build/beet.js",
     "test": "mocha"
   },
   "author": "zya",
