@@ -136,7 +136,7 @@ The functions will be called with a `time` and a `step` parameter.
 You can use the `time` parameter for web audio methods. `step` can be used to change audio behaviour according to the current step.
 
 #### example
-````
+````js
 function callback (time, step) {
     var osc = context.createOscillator();
     osc.connect(context.destination);
