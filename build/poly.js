@@ -4,9 +4,8 @@ var gain = context.createGain();
 gain.connect(context.destination);
 gain.gain.value = 0.2;
 
-
-var Poly = require('./lib/poly');
-var poly = new Poly({
+var beet = require('./lib/beet');
+var beet = new beet({
   context: context,
   tempo: 90
 });
@@ -26,31 +25,89 @@ function on(time) {
   osc.stop(time + 0.15);
 }
 
-var sequence = poly.sequence(4, 4);
-// var sequence2 = poly.sequence(2, 5);
+var pattern = beet.pattern(3, 4);
+// var pattern2 = beet.pattern(2, 5);
 
-var layer = poly.layer(sequence, on);
-// var layer2 = poly.layer(sequence2, off);
-poly.add(layer);
-// poly.add(layer2);
-poly.start();
+var layer = beet.layer(pattern, on);
+// var layer2 = beet.layer(pattern2, off);
+beet.add(layer);
+// beet.add(layer2);
+beet.start();
 
-window.poly = poly;
-window.sequence = sequence;
+window.beet = beet;
+window.pattern = pattern;
 
-// setTimeout(function () {
-//   poly.tempo = 180;
-// }, 1000);
 
-// setTimeout(function () {
-//   console.log('test');
-//   sequence.shift(1);
-//   setTimeout(function () {
-//     console.log('test2');
-//     sequence.shift(1);
-//   }, 1000);
-// }, 3000);
-},{"./lib/poly":3}],2:[function(require,module,exports){
+setTimeout(function () {
+  pattern.shift(1);
+  setTimeout(function () {
+    pattern.shift(1);
+  }, 1000);
+}, 3000);
+},{"./lib/beet":2}],2:[function(require,module,exports){
+var watch = require('watchjs').watch;
+
+var Pattern = require('./pattern');
+var Layer = require('./layer');
+
+function Beet(opts) {
+  this.context = opts.context;
+  this.tempo = opts.tempo || 120;
+  this.layers = [];
+  var self = this;
+
+  watch(this, 'tempo', function () {
+    self._change_tempo(self.tempo);
+  });
+}
+
+Beet.prototype.layer = function (seq, on, off) {
+  var layer = new Layer(this.context, this.tempo, seq, on, off);
+  return layer;
+};
+
+Beet.prototype.pattern = function (pulses, steps) {
+  var pattern = new Pattern(pulses, steps);
+  return pattern;
+};
+
+Beet.prototype.add = function (layer) {
+  this.layers.push(layer);
+};
+
+Beet.prototype.remove = function (layer) {
+  var index = this.layers.indexOf(layer);
+  var found = this.layers[index];
+  found.metro.stop();
+  this.layers.splice(index, 1);
+};
+
+Beet.prototype.start = function () {
+  this.layers.forEach(function (layer) {
+    layer.start();
+  });
+};
+
+Beet.prototype.stop = function () {
+  this.layers.forEach(function (layer) {
+    layer.stop();
+  });
+};
+
+Beet.prototype.pause = function () {
+  this.layers.forEach(function (layer) {
+    layer.pause();
+  });
+};
+
+Beet.prototype._change_tempo = function (value) {
+  this.layers.forEach(function (layer) {
+    layer.metro.tempo = value;
+  });
+};
+
+module.exports = Beet;
+},{"./layer":3,"./pattern":4,"watchjs":11}],3:[function(require,module,exports){
 var Metro = require('wa-metro');
 
 function Layer(context, tempo, sequence, on, off) {
@@ -86,73 +143,11 @@ Layer.prototype.stop = function () {
 
 module.exports = Layer;
 
-},{"wa-metro":7}],3:[function(require,module,exports){
-var watch = require('watchjs').watch;
-
-var Sequence = require('./sequence');
-var Layer = require('./layer');
-
-function Poly(opts) {
-  this.context = opts.context;
-  this.tempo = opts.tempo || 120;
-  this.layers = [];
-  var self = this;
-
-  watch(this, 'tempo', function () {
-    self._change_tempo(self.tempo);
-  });
-}
-
-Poly.prototype.layer = function (seq, on, off) {
-  var layer = new Layer(this.context, this.tempo, seq, on, off);
-  return layer;
-};
-
-Poly.prototype.sequence = function (pulses, steps) {
-  return new Sequence(pulses, steps);
-};
-
-Poly.prototype.add = function (layer) {
-  this.layers.push(layer);
-};
-
-Poly.prototype.remove = function (layer) {
-  var index = this.layers.indexOf(layer);
-  var found = this.layers[index];
-  found.metro.stop();
-  this.layers.splice(index, 1);
-};
-
-Poly.prototype.start = function () {
-  this.layers.forEach(function (layer) {
-    layer.start();
-  });
-};
-
-Poly.prototype.stop = function () {
-  this.layers.forEach(function (layer) {
-    layer.stop();
-  });
-};
-
-Poly.prototype.pause = function () {
-  this.layers.forEach(function (layer) {
-    layer.pause();
-  });
-};
-
-Poly.prototype._change_tempo = function (value) {
-  this.layers.forEach(function (layer) {
-    layer.metro.tempo = value;
-  });
-};
-
-module.exports = Poly;
-},{"./layer":2,"./sequence":4,"watchjs":11}],4:[function(require,module,exports){
+},{"wa-metro":7}],4:[function(require,module,exports){
 var bjork = require('bjorklund');
 var watch = require('watchjs').watch;
 
-function Sequence(pulses, steps) {
+function Pattern(pulses, steps) {
   this.seq = bjork(pulses, steps).split('');
   this.pulses = pulses;
   this.steps = steps;
@@ -165,12 +160,12 @@ function Sequence(pulses, steps) {
   return this;
 }
 
-Sequence.prototype.update = function (pulses, steps) {
+Pattern.prototype.update = function (pulses, steps) {
   this.seq = bjork(pulses, steps).split('');
   return this;
 };
 
-Sequence.prototype.shift = function (offset) {
+Pattern.prototype.shift = function (offset) {
   var off = offset > this.seq.length ? offset = offset - this.seq.length : offset;
   if (off === this.seq.length) return this;
 
@@ -182,7 +177,7 @@ Sequence.prototype.shift = function (offset) {
   return this;
 };
 
-module.exports = Sequence;
+module.exports = Pattern;
 },{"bjorklund":5,"watchjs":11}],5:[function(require,module,exports){
 var _ = require('lodash');
 

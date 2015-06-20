@@ -3,9 +3,8 @@ var gain = context.createGain();
 gain.connect(context.destination);
 gain.gain.value = 0.2;
 
-
-var Poly = require('./lib/poly');
-var poly = new Poly({
+var beet = require('./lib/beet');
+var beet = new beet({
   context: context,
   tempo: 90
 });
@@ -25,27 +24,22 @@ function on(time) {
   osc.stop(time + 0.15);
 }
 
-var sequence = poly.sequence(4, 4);
-// var sequence2 = poly.sequence(2, 5);
+var pattern = beet.pattern(3, 4);
+// var pattern2 = beet.pattern(2, 5);
 
-var layer = poly.layer(sequence, on);
-// var layer2 = poly.layer(sequence2, off);
-poly.add(layer);
-// poly.add(layer2);
-poly.start();
+var layer = beet.layer(pattern, on);
+// var layer2 = beet.layer(pattern2, off);
+beet.add(layer);
+// beet.add(layer2);
+beet.start();
 
-window.poly = poly;
-window.sequence = sequence;
+window.beet = beet;
+window.pattern = pattern;
 
-// setTimeout(function () {
-//   poly.tempo = 180;
-// }, 1000);
 
-// setTimeout(function () {
-//   console.log('test');
-//   sequence.shift(1);
-//   setTimeout(function () {
-//     console.log('test2');
-//     sequence.shift(1);
-//   }, 1000);
-// }, 3000);
+setTimeout(function () {
+  pattern.shift(1);
+  setTimeout(function () {
+    pattern.shift(1);
+  }, 1000);
+}, 3000);
