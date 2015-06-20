@@ -58,10 +58,14 @@ Beet.prototype.stop = function (when) {
   }, start_time * 1000);
 };
 
-Beet.prototype.pause = function () {
-  this.layers.forEach(function (layer) {
-    layer.pause();
-  });
+Beet.prototype.pause = function (when) {
+  var self = this;
+  var start_time = when || 0;
+  setTimeout(function () {
+    self.layers.forEach(function (layer) {
+      layer.pause();
+    });
+  }, start_time * 1000);
 };
 
 Beet.prototype._change_tempo = function (value) {
