@@ -32,4 +32,47 @@ beet.add(layer);
 // start the sequencer
 beet.start();
 ````
+## API
 
+### Beet
+### `beet.start(time)`
+
+Starts the sequencer after a given time in seconds.
+
+#### Parameters
+* time - a number in seconds - defaults to 0
+
+### `beet.stop(time)`
+
+Stops the sequencer after a given time in seconds.
+
+#### Parameters
+* time (optional) - a number in seconds - defaults to 0
+
+### Pattern
+### `beet.pattern(pulses, steps)`
+Returns a `pattern` object containing a [bjorklund](https://github.com/zya/bjorklund) sequence with equally distributed number of `pulses` over `steps`.
+
+#### Parameters
+* pulses (required) - number of pulses (active steps) in the sequence
+* steps (required) - number of steps in the sequence
+
+#### example
+````js
+var pattern = beet.pattern(3, 7);
+// a pattern object containing a sequence as below
+// '1010100'
+````
+
+### `.update(pulses, steps)`
+Updates the pattern object with the new values. You can also update the values directly. See example below.
+
+#### example
+````js
+var pattern = beet.pattern(2, 5);
+pattern.update(5,8); // updates the pattern to '10100'
+
+// you can also set the values separately
+pattern.pulses = 4;
+pattern.steps = 8;
+````
