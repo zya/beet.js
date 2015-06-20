@@ -1,26 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var context = new AudioContext();
-var gain = context.createGain();
-gain.connect(context.destination);
-gain.gain.value = 0.2;
-
-var Beet = require('./lib/beet');
-var beet = new Beet({
-  context: context,
-  tempo: 90
-});
-
-var pattern = beet.pattern(3, 4);
-var layer = beet.layer(pattern, callback);
-beet.add(layer);
-beet.start();
-
-function callback(time, step) {
-  var osc = context.createOscillator();
-  osc.connect(gain);
-  osc.start(time);
-  osc.stop(time + 0.1);
-}
+module.exports = require('./lib/beet');
 },{"./lib/beet":2}],2:[function(require,module,exports){
 var watch = require('watchjs').watch;
 
@@ -91,6 +70,7 @@ Beet.prototype._change_tempo = function (value) {
   });
 };
 
+window.Beet = Beet;
 module.exports = Beet;
 },{"./layer":3,"./pattern":4,"watchjs":11}],3:[function(require,module,exports){
 var Metro = require('wa-metro');
