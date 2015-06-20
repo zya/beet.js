@@ -44,10 +44,31 @@ Starts the sequencer after a given time in seconds.
 
 ### `beet.stop(time)`
 
-Stops the sequencer after a given time in seconds.
+Stops the sequencer after a given time in seconds and resets the current step number.
 
 #### Parameters
 * time (optional) - a number in seconds - defaults to 0
+
+### `beet.pause(time)`
+
+Pauses the sequencer after a given time in seconds but keeps the current step number.
+
+#### Parameters
+* time (optional) - a number in seconds - defaults to 0
+
+### `beet.add(layer)`
+
+Adds a given `beet.layer` to the list of layers to play.
+
+#### Parameters
+* layer (Required) - a `beet.layer` object.
+
+### `beet.remove(layer)`
+
+Removes a given `beet.layer` from the list of layers to play.
+
+#### Parameters
+* layer (Required) - a `beet.layer` object.
 
 ### Pattern
 ### `beet.pattern(pulses, steps)`
@@ -67,6 +88,10 @@ var pattern = beet.pattern(3, 7);
 ### `.update(pulses, steps)`
 Updates the pattern object with the new values. You can also update the values directly. See example below.
 
+#### Parameters
+* pulses (required) - number of pulses (active steps) in the sequence
+* steps (required) - number of steps in the sequence
+
 #### example
 ````js
 var pattern = beet.pattern(2, 5);
@@ -75,4 +100,16 @@ pattern.update(5,8); // updates the pattern to '10100'
 // you can also set the values separately
 pattern.pulses = 4;
 pattern.steps = 8;
+````
+
+### `.shift(offset)`
+Shifts the sequence by the offset and returns the pattern object.
+
+#### Parameters
+* offset (required) - number of steps to shift the sequence by
+
+#### example
+````js
+var pattern = beet.pattern(1, 4); // returns '1000'
+pattern.shift(1) // updates the sequence to '0100'
 ````
