@@ -84,13 +84,17 @@ Returns a `pattern` object containing a [bjorklund](https://github.com/zya/bjork
 
 #### Parameters
 * pulses (required) - number of pulses (active steps) in the sequence
-* steps (required) - number of steps in the sequence
+* steps (optional) - number of steps in the sequence - value of `pulses` will be used steps is not specified.
 
 #### example
 ````js
 var pattern = beet.pattern(3, 7);
 // a pattern object containing a sequence as below
 // '1010100'
+
+var pattern2 = beet.pattern(4);
+// a pattern object with a sequence as below
+// '1111'
 ````
 
 #### `.update(pulses, steps)`
@@ -154,4 +158,19 @@ function callback (time, step) {
     osc.start(time);
     osc.stop(time + 0.2);
 }
-```` 
+````
+
+### Utils
+Beet comes with a series of useful utilities for web audio api. These might me moved to a separate module in the future as these are not specific to beet's functionality. But for now, features will be added gradually.
+
+#### `.envelope(audioparam, now, opts)`
+Applies an envelope to the audio param given a series of options.
+* audioparam (required) -  an [AudioParam](https://developer.mozilla.org/en-US/docs/Web/API/AudioParam) object to be automated.
+* now (required) - the time for the automation to start, e.g. the time parameter in `beet` callback.
+* opts (optional) - an JavaScript object that contains the envelope parameters.
+  * start (optional) - the start value for the automation curve. the audio param will be set to this value at the beginning of the automation.
+  * peak (optional) - the maximum value for the automation curve that the attack stage will end up in.
+  * attack (optional) - the time in seconds for the attack stage.
+  * decay (optional) - the time in seconds for the decay stage.
+  * sustain (optional) - the value for that the decay stage will end up in.
+  * release (optional) - the time in seconds for the release stage.
