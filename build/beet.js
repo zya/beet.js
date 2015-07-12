@@ -5,6 +5,7 @@ var watch = require('watchjs').watch;
 
 var Pattern = require('./pattern');
 var Layer = require('./layer');
+var utils = require('./utils');
 
 function Beet(opts) {
   this.context = opts.context;
@@ -68,6 +69,8 @@ Beet.prototype.pause = function (when) {
   }, start_time * 1000);
 };
 
+Beet.prototype.utils = utils;
+
 Beet.prototype._change_tempo = function (value) {
   this.layers.forEach(function (layer) {
     layer.metro.tempo = value;
@@ -76,7 +79,7 @@ Beet.prototype._change_tempo = function (value) {
 
 window.Beet = Beet;
 module.exports = Beet;
-},{"./layer":3,"./pattern":4,"watchjs":11}],3:[function(require,module,exports){
+},{"./layer":3,"./pattern":4,"./utils":5,"watchjs":12}],3:[function(require,module,exports){
 var Metro = require('wa-metro');
 
 function Layer(context, tempo, sequence, on, off) {
@@ -112,7 +115,7 @@ Layer.prototype.stop = function () {
 
 module.exports = Layer;
 
-},{"wa-metro":7}],4:[function(require,module,exports){
+},{"wa-metro":8}],4:[function(require,module,exports){
 var bjork = require('bjorklund');
 var watch = require('watchjs').watch;
 
@@ -147,7 +150,23 @@ Pattern.prototype.shift = function (offset) {
 };
 
 module.exports = Pattern;
-},{"bjorklund":5,"watchjs":11}],5:[function(require,module,exports){
+},{"bjorklund":6,"watchjs":12}],5:[function(require,module,exports){
+module.exports.envelope = function (audioParam, now, opts) {
+  if (!opts) opts = {};
+  var peak = opts.peak || audioParam.defaultValue;
+  if (opts.start === 0) opts.start = 0.000001;
+  var start = opts.start || audioParam.value;
+  var attack = opts.attack || 0.1;
+  var decay = opts.decay || 0.0;
+  var sustain = opts.sustain || peak;
+  var release = opts.release || 0.5;
+
+  audioParam.setValueAtTime(start, now);
+  audioParam.linearRampToValueAtTime(peak, now + attack);
+  audioParam.linearRampToValueAtTime(sustain, now + attack + decay);
+  audioParam.linearRampToValueAtTime(0, now + attack + decay + release);
+};
+},{}],6:[function(require,module,exports){
 var _ = require('lodash');
 
 module.exports = function bjorklund(pulses, length) {
@@ -189,7 +208,7 @@ function generate_zero_based(ones, zeros) {
     return ones.reverse().join().replace(/,/g, '');
   }
 }
-},{"lodash":6}],6:[function(require,module,exports){
+},{"lodash":7}],7:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -12395,9 +12414,9 @@ function generate_zero_based(ones, zeros) {
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 module.exports = require('./lib/wa-metro');
-},{"./lib/wa-metro":8}],8:[function(require,module,exports){
+},{"./lib/wa-metro":9}],9:[function(require,module,exports){
 var work = require('webworkify');
 
 function Metro(context, callback) {
@@ -12453,6 +12472,9 @@ Metro.prototype.stop = function () {
 
 Metro.prototype._scheduler = function _scheduler() {
   var self = this;
+  if (this._step === 1 && this._first) {
+    this._next_event_time = this.context.currentTime;
+  }
   while (this._next_event_time < this.context.currentTime + this.look_ahead) {
     this.callback(self._next_event_time, self._step);
     this._next();
@@ -12473,7 +12495,7 @@ Metro.prototype._next = function _next() {
 };
 
 module.exports = Metro;
-},{"./worker.js":9,"webworkify":10}],9:[function(require,module,exports){
+},{"./worker.js":10,"webworkify":11}],10:[function(require,module,exports){
 module.exports = function (self) {
   var interval = 25;
   var timer = null;
@@ -12493,7 +12515,7 @@ module.exports = function (self) {
     }
   };
 };
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 var bundleFn = arguments[3];
 var sources = arguments[4];
 var cache = arguments[5];
@@ -12550,7 +12572,7 @@ module.exports = function (fn) {
     ));
 };
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 /**
  * DEVELOPED BY
  * GIL LOPES BUENO
