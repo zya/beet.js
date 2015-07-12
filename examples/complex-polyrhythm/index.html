@@ -9,49 +9,60 @@
 <script type="text/javascript" src="../../build/beet.js"></script>
 <script type="text/javascript">
   var context = new AudioContext();
+  var buffer = null;
   var beet = new Beet({
     context: context,
-    tempo: 30
+    tempo: 100
   });
-  var fours = beet.pattern(2);
-  var threes = beet.pattern(3);
+  var fours = beet.pattern(3);
+  var threes = beet.pattern(4);
   var layer = beet.layer(fours, callback1);
-  // var layer2 = beet.layer(threes, callback2);
+  var layer2 = beet.layer(threes, callback2);
 
   function callback1 (time, step) {
-    var osc = context.createOscillator();
+    var src = context.createBufferSource();
+    src.buffer = buffer;
     var gain = context.createGain();
-    osc.connect(gain);
+    src.connect(gain);
     gain.connect(context.destination);
-    
+    var note = 60;
+    src.playbackRate.value = beet.utils.mtop(note);
     beet.utils.envelope(gain.gain, time, {
       start: 0,
-      attack: 0.001,
+      attack: 0.1,
       sustain: 1,
-      release: 1.5
+      release: 0.2
     });
 
-    beet.utils.envelope(osc.frequency, time, {
-      start: 880,
-      attack: 0.1,
-      sustain: 300,
-      release: 1.5
-    });
-    osc.start(time);
-    osc.stop(time + 3);
+    src.start(time);
+    src.stop(time + 5);
   }
 
-  // function callback2 (time, step) {
-  //   var osc = context.createOscillator();
-  //   osc.connect(context.destination);
-  //   osc.frequency.value = 220;
-  //   osc.start(time);
-  //   osc.stop(time + 0.2);
-  // }
+  function callback2 (time, step) {
+    var src = context.createBufferSource();
+    src.buffer = buffer;
+    var gain = context.createGain();
+    src.connect(gain);
+    gain.connect(context.destination);
+    var note = 65;
+    src.playbackRate.value = beet.utils.mtop(note);
+    beet.utils.envelope(gain.gain, time, {
+      start: 0,
+      attack: 0.1,
+      sustain: 1,
+      release: 0.2
+    });
+
+    src.start(time);
+    src.stop(time + 5);
+  }
 
   beet.add(layer);
-  // beet.add(layer2);
+  beet.add(layer2);
+   beet.utils.load('sm.wav', function(bf){
+    buffer = bf;
+    beet.start();
+  });
   
-  beet.start();
 </script>
 </html>
