@@ -165,6 +165,8 @@ Beet comes with a series of useful utilities for web audio api. These might me m
 
 #### `.envelope(audioparam, now, opts)`
 Applies an envelope to the audio param given a series of options.
+
+#### Parameters
 * `audioparam` (required) -  an [AudioParam](https://developer.mozilla.org/en-US/docs/Web/API/AudioParam) object to be automated.
 * `now` (required) - the time for the automation to start, e.g. the time parameter in `beet` callback.
 * `opts` (optional) - an JavaScript object that contains the envelope parameters.
@@ -174,3 +176,70 @@ Applies an envelope to the audio param given a series of options.
   * `decay` (optional) - the time in seconds for the decay stage.
   * `sustain` (optional) - the value for that the decay stage will end up in.
   * `release` (optional) - the time in seconds for the release stage.
+
+#### example
+````js
+var osc = context.createOscillator();
+var gain = context.createGain();
+osc.connect(gain);
+gain.connect(context.destination);
+
+beet.utils.envelope(gain.gain, time, {
+  start: 0,
+  peake: 1.0,
+  attack: 0.1,
+  decay: 0.2,
+  sustain: 0.8,
+  release: 0.5
+});
+
+osc.start(time);
+osc.stop(time + 2);
+````
+
+#### `.load(path, success, failure)`
+Loads an audio file for a given path and returns a decoded [AudioBuffer](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer) object.
+
+#### Parameters
+* `path` (required) - the path to your audio file.
+* `success` (required) - function to be called on load success. The passed function will be called with a `buffer` parameters which is an AudioBuffer object.
+* `failure` (required) - function to be called on load or decode error.
+
+#### example
+````js
+beet.utils.load('path/to/file.wav', function(buffer){
+  // do something with the buffer
+});
+````
+
+#### `.mtof(midi_note)` 
+Converts a give midi note to a frequency value in hz.
+
+#### Parameters
+* `midi_note` (required) - the midi note number (0 to 127).
+#### example
+````js
+beet.utils.mtof(69); // will return 440 for A4
+````
+
+#### `.ntof(note_name)` 
+Converts a given note name to a frequency value in hz.
+
+#### Parameters
+* `note_name` (required) - the note name followed by octave e.g. 'a4'
+#### example
+````js
+beet.utils.ntof('a4'); // will return 440 for A4
+````
+
+#### `.mtop(midi_note)` 
+Converts a given midi note to a value representing the [`playbackRate`](https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode/playbackRate).
+
+#### Parameters
+* `midi_note` (required) - the midi note number (0 to 127).
+#### example
+````js
+beet.utils.mtop(60); // will return 1 for C4 - meaning the sample will be played in the original speed
+beet.utils.mtop(72); // will return 2 for C3
+beet.utils.mtop(48); // will return 0.5 for C2
+````

@@ -30,6 +30,10 @@ describe('utils', function () {
     it('converts a midi note to a playback rate', function () {
       var c4 = utils.mtop(60);
       assert.equal(c4, 1);
+      var c5 = utils.mtop(72);
+      assert.equal(c5, 2);
+      var c3 = utils.mtop(48);
+      assert.equal(c3, 0.5);
       var a4 = utils.mtop(69);
       assert.equal(a4.toFixed(2), 1.68);
     });
