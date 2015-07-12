@@ -2,7 +2,14 @@ var assert = require('chai').assert;
 var Pattern = require('../../lib/pattern');
 
 describe('Pattern', function () {
-  describe('shift', function () {
+  describe('constructor', function () {
+    it('uses the the value of pulses for steps if steps is not present', function () {
+      var pattern = new Pattern(4);
+      assert.deepEqual(pattern.seq, ['1', '1', '1', '1']);
+    });
+  });
+
+  describe('.shift(offset)', function () {
     it('shifts the Pattern by 1', function () {
       var seq = new Pattern(1, 4);
       seq.shift(1);
