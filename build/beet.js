@@ -133,6 +133,7 @@ function Pattern(pulses, steps) {
 }
 
 Pattern.prototype.update = function (pulses, steps) {
+  steps = steps || pulses;
   this.seq = bjork(pulses, steps).split('');
   return this;
 };

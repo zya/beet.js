@@ -48,43 +48,43 @@ beet.start();
 Starts the sequencer after a given time in seconds.
 
 #### Parameters
-* time - a number in seconds - defaults to 0
+* `time` - a number in seconds - defaults to 0
 
 #### `beet.stop(time)`
 
 Stops the sequencer after a given time in seconds and resets the current step number.
 
 #### Parameters
-* time (optional) - a number in seconds - defaults to 0
+* `time` (optional) - a number in seconds - defaults to 0
 
 #### `beet.pause(time)`
 
 Pauses the sequencer after a given time in seconds but keeps the current step number.
 
 #### Parameters
-* time (optional) - a number in seconds - defaults to 0
+* `time` (optional) - a number in seconds - defaults to 0
 
 #### `beet.add(layer)`
 
 Adds a given `beet.layer` to the list of layers to play.
 
 #### Parameters
-* layer (Required) - a `beet.layer` object.
+* `layer` (Required) - a `beet.layer` object.
 
 #### `beet.remove(layer)`
 
 Removes a given `beet.layer` from the list of layers to play.
 
 #### Parameters
-* layer (Required) - a `beet.layer` object.
+* `layer` (Required) - a `beet.layer` object.
 
 ### Pattern
 #### `beet.pattern(pulses, steps)`
 Returns a `pattern` object containing a [bjorklund](https://github.com/zya/bjorklund) sequence with equally distributed number of `pulses` over `steps`.
 
 #### Parameters
-* pulses (required) - number of pulses (active steps) in the sequence
-* steps (optional) - number of steps in the sequence - value of `pulses` will be used steps is not specified.
+* `pulses` (required) - number of pulses (active steps) in the sequence
+* `steps` (optional) - number of steps in the sequence - value of `pulses` will be used steps is not specified.
 
 #### example
 ````js
@@ -101,8 +101,8 @@ var pattern2 = beet.pattern(4);
 Updates the pattern object with the new values. You can also update the values directly. See example below.
 
 #### Parameters
-* pulses (required) - number of pulses (active steps) in the sequence
-* steps (required) - number of steps in the sequence
+* `pulses` (required) - number of pulses (active steps) in the sequence.
+* `steps` (optional) - number of steps in the sequence. value of `pulses` will be used steps is not specified.
 
 #### example
 ````js
@@ -118,7 +118,7 @@ pattern.steps = 8;
 Shifts the sequence by the offset and returns the pattern object.
 
 #### Parameters
-* offset (required) - number of steps to shift the sequence by
+* `offset` (required) - number of steps to shift the sequence by
 
 #### example
 ````js
@@ -131,9 +131,9 @@ pattern.shift(1) // updates the sequence to '0100'
 Creates a `beet.layer` object and returns it.
 
 #### Parameters
-* pattern (required) - a `beet.pattern` object.
-* onCallback (required) - a function to call on pattern's pulses e.g. 1's
-* offCallback (optional) - a function to call on pattern's empty slots e.g. 0's.
+* `pattern` (required) - a `beet.pattern` object.
+* `onCallback` (required) - a function to call on pattern's pulses e.g. 1's
+* `offCallback` (optional) - a function to call on pattern's empty slots e.g. 0's.
 
 #### example
 ````js
@@ -165,12 +165,12 @@ Beet comes with a series of useful utilities for web audio api. These might me m
 
 #### `.envelope(audioparam, now, opts)`
 Applies an envelope to the audio param given a series of options.
-* audioparam (required) -  an [AudioParam](https://developer.mozilla.org/en-US/docs/Web/API/AudioParam) object to be automated.
-* now (required) - the time for the automation to start, e.g. the time parameter in `beet` callback.
-* opts (optional) - an JavaScript object that contains the envelope parameters.
-  * start (optional) - the start value for the automation curve. the audio param will be set to this value at the beginning of the automation.
-  * peak (optional) - the maximum value for the automation curve that the attack stage will end up in.
-  * attack (optional) - the time in seconds for the attack stage.
-  * decay (optional) - the time in seconds for the decay stage.
-  * sustain (optional) - the value for that the decay stage will end up in.
-  * release (optional) - the time in seconds for the release stage.
+* `audioparam` (required) -  an [AudioParam](https://developer.mozilla.org/en-US/docs/Web/API/AudioParam) object to be automated.
+* `now` (required) - the time for the automation to start, e.g. the time parameter in `beet` callback.
+* `opts` (optional) - an JavaScript object that contains the envelope parameters.
+  * `start` (optional) - the start value for the automation curve. the audio param will be set to this value at the beginning of the automation.
+  * `peak` (optional) - the maximum value for the automation curve that the attack stage will end up in.
+  * `attack` (optional) - the time in seconds for the attack stage.
+  * `decay` (optional) - the time in seconds for the decay stage.
+  * `sustain` (optional) - the value for that the decay stage will end up in.
+  * `release` (optional) - the time in seconds for the release stage.
