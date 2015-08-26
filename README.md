@@ -43,6 +43,15 @@ beet.start();
 ## API
 
 ### Beet
+
+#### `new Beet(opts)`
+Beet constructor. Returns a new instance of beet.
+
+#### Parameters
+* `opts` (required) - an object containing the initialisation options
+  * context (required) - an instance of AudioContext
+  * tempo (optional) - speed in BPM - defaults to 120
+
 #### `beet.start(time)`
 
 Starts the sequencer after a given time in seconds.
@@ -138,7 +147,7 @@ Creates a `beet.layer` object and returns it.
 #### example
 ````js
 var pattern = beet.pattern(1, 4); // returns '1000'
-var layer = beet.layer(pattern, on, off); 
+var layer = beet.layer(pattern, on, off);
 // on will be called on 1
 // off will be called on 0's
 ````
@@ -212,7 +221,7 @@ beet.utils.load('path/to/file.wav', function(buffer){
 });
 ````
 
-#### `.mtof(midi_note)` 
+#### `.mtof(midi_note)`
 Converts a give midi note to a frequency value in hz.
 
 #### Parameters
@@ -222,7 +231,7 @@ Converts a give midi note to a frequency value in hz.
 beet.utils.mtof(69); // will return 440 for A4
 ````
 
-#### `.ntof(note_name)` 
+#### `.ntof(note_name)`
 Converts a given note name to a frequency value in hz.
 
 #### Parameters
@@ -232,7 +241,7 @@ Converts a given note name to a frequency value in hz.
 beet.utils.ntof('a4'); // will return 440 for A4
 ````
 
-#### `.mtop(midi_note)` 
+#### `.mtop(midi_note)`
 Converts a given midi note to a value representing the [`playbackRate`](https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode/playbackRate).
 
 #### Parameters
