@@ -153,12 +153,13 @@ var layer = beet.layer(pattern, on, off);
 ````
 #### Callback format
 The callbacks are functions that will be called from the scheduler.
-The functions will be called with a `time` and a `step` parameter.
-You can use the `time` parameter for web audio methods. `step` can be used to change audio behaviour according to the current step.
+The functions will be called with `time`, `step` and `timeFromScheduled` parameters.
+You can use the `time` parameter for web audio methods. `step` can be used to change audio behaviour according to the current step. 
+`timeFromScheduled` is a value in seconds which corresponds to the time it will take for an audio event to occur from the time it was scheduled (`time - context.currentTime`). It can be used to schedule JS events using `setTimeout`.
 
 #### example
 ````js
-function callback (time, step) {
+function callback (time, step, timeFromScheduled) {
     var osc = context.createOscillator();
     osc.connect(context.destination);
     if(step === 1){
@@ -166,6 +167,9 @@ function callback (time, step) {
     }
     osc.start(time);
     osc.stop(time + 0.2);
+    setTimeout(function(){
+      // trigger some js event such as animation - will be synced to the audio
+    }, timeFromScheduled * 1000);
 }
 ````
 
