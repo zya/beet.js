@@ -9,26 +9,43 @@ var beet = new Beet({
   context: context
 });
 var scene = new Scene('eu', beet, {
-  slots: 9,
-  pulses: 2
+  slots: 4,
+  pulses: 4,
+  freq: 440
 });
 
-setTimeout(function() {
-  scene.change({
-    slots: 4,
-    pulses: 4
-  });
-  setTimeout(function() {
-    scene.change({
-      slots: 19,
-      pulses: 7
-    });
-  }, 1000);
-}, 1000);
+// var scene2 = new Scene('eu', beet, {
+//   slots: 3,
+//   pulses: 3,
+//   freq: 220
+// });
+
+var scene3 = new Scene('eu', beet, {
+  slots: 5,
+  pulses: 5,
+  freq: 220
+});
+
+// setTimeout(function() {
+//   scene.change({
+//     slots: 4,
+//     pulses: 4
+//   });
+//   setTimeout(function() {
+//     scene.change({
+//       slots: 19,
+//       pulses: 7
+//     });
+//   }, 3000);
+// }, 3000);
+
+beet.start();
 
 function animate() {
   requestAnimationFrame(animate);
+  // scene2.render();
   scene.render();
+  scene3.render();
 }
 
 animate();
@@ -134,7 +151,7 @@ function Scene(name, beet, options) {
   this.camera.position.z = 300;
 
   this.offColor = new THREE.Color(0.5, 0.5, 0.5);
-  this.onColor = new THREE.Color('red');
+  this.onColor = new THREE.Color('green');
 
   this.circleMaterial = new THREE.MeshBasicMaterial({
     color: 0xffffff
@@ -148,13 +165,33 @@ function Scene(name, beet, options) {
     color: self.offColor
   });
 
+  this.currentMaterial = new THREE.MeshBasicMaterial({
+    color: 'red'
+  });
+
   this.circleGeometry = new THREE.CircleGeometry(100, 50);
 
   self.circleGeometry.verticesNeedUpdate = true;
   this.circle = new THREE.Mesh(self.circleGeometry, self.circleMaterial);
   this.scene.add(self.circle);
+  this.currentCircle = new THREE.Mesh(self.circleGeometry, self.currentMaterial);
+  this.currentCircle.scale.x = this.currentCircle.scale.y = this.currentCircle.scale.z = 0.07;
+  this.scene.add(self.currentCircle);
 
-  this.pattern = beet.pattern(options.pulses, options.slots);
+  this.pattern = self.beet.pattern(options.pulses, options.slots);
+  this.layer = self.beet.layer(self.pattern, function(time, step, drawTime) {
+    var osc = self.beet.context.createOscillator();
+    osc.connect(self.beet.context.destination);
+    osc.frequency.value = options.freq;
+    osc.start(time);
+    osc.stop(time + 0.1);
+    setTimeout(function() {
+      var current = self.slots[step - 1];
+      if (current) self.currentCircle.position.copy(current.position);
+    }, drawTime * 1000 - 100);
+  });
+
+  self.beet.add(self.layer);
 
   this._addPoints();
 
@@ -200,8 +237,12 @@ Scene.prototype._addPoints = function() {
 
 Scene.prototype.change = function(options) {
   var self = this;
-  self.pattern = self.beet.pattern(options.pulses, options.slots);
+  self.pattern.update(options.pulses, options.slots);
   self._addPoints();
+};
+
+Scene.prototype.audioCallback = function(time, step, drawTime) {
+
 };
 
 module.exports = Scene;
