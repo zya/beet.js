@@ -8,43 +8,40 @@ var beet = new Beet({
   context: context
 });
 
-var scene = new Scene('eu', beet, {
+var scene = new Scene('eu', {
   layers: [
     {
-      slots: 4,
-      pulses: 3,
+      pulses: 8,
+      slots: 9,
       cb: function(time, step) {
-
-      }
-    },
-    {
-      slots: 5,
-      pulses: 3,
-      cb: function(time, step) {
-
+        var osc = context.createOscillator();
+        osc.connect(context.destination);
+        osc.frequency.value = 220;
+        osc.start(time);
+        osc.stop(time + 0.2);
       }
     }
+    // {
+    //   pulses: 7,
+    //   slots: 7,
+    //   cb: function(time, step) {
+    //     var osc = context.createOscillator();
+    //     osc.connect(context.destination);
+    //     osc.frequency.value = 440;
+    //     osc.start(time);
+    //     osc.stop(time + 0.2);
+    //   }
+    // }
   ]
 });
 
-var scene2 = new Scene('eu', beet, {
-  layers: [
-    {
-      slots: 4,
-      pulses: 4,
-      cb: function(time, step) {
 
-      }
-    }
-  ]
-});
 
-beet.start();
+scene.start();
 
 function animate() {
   requestAnimationFrame(animate);
   scene.render();
-  scene2.render();
 }
 
 animate();
