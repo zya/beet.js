@@ -3,21 +3,41 @@ var dat = require('dat-gui');
 
 var Scene = require('./lib/demo/scene');
 var Beet = require('./index');
-var context = new AudioContext();
+var context = require('./lib/demo/context');
 
 var beet = new Beet({
   context: context
 });
+
 var scene = new Scene('eu', beet, {
-  slots: 4,
-  pulses: 4,
-  freq: 440
+  layers: [
+    {
+      slots: 4,
+      pulses: 3,
+      cb: function(time, step) {
+
+      }
+    },
+    {
+      slots: 5,
+      pulses: 3,
+      cb: function(time, step) {
+
+      }
+    }
+  ]
 });
 
 var scene2 = new Scene('eu', beet, {
-  slots: 5,
-  pulses: 5,
-  freq: 220
+  layers: [
+    {
+      slots: 4,
+      pulses: 4,
+      cb: function(time, step) {
+
+      }
+    }
+  ]
 });
 
 beet.start();
@@ -30,7 +50,7 @@ function animate() {
 
 animate();
 
-},{"./index":2,"./lib/demo/scene":4,"dat-gui":10}],2:[function(require,module,exports){
+},{"./index":2,"./lib/demo/context":4,"./lib/demo/scene":6,"dat-gui":12}],2:[function(require,module,exports){
 module.exports = require('./lib/beet');
 },{"./lib/beet":3}],3:[function(require,module,exports){
 var watch = require('watchjs').watch;
@@ -116,70 +136,111 @@ Beet.prototype._change_tempo = function (value) {
 
 window.Beet = Beet;
 module.exports = Beet;
-},{"./layer":5,"./pattern":6,"./utils":7,"watchjs":18}],4:[function(require,module,exports){
+},{"./layer":7,"./pattern":8,"./utils":9,"watchjs":20}],4:[function(require,module,exports){
+var context = new AudioContext();
+module.exports = context;
+
+},{}],5:[function(require,module,exports){
 var THREE = require('three');
+var circleGeometry = new THREE.CircleGeometry(50, 50);
+
+var activeMaterial = new THREE.MeshBasicMaterial({
+  color: 'green'
+});
+var inactiveMaterial = new THREE.MeshBasicMaterial({
+  color: 'grey'
+});
+var currentMaterial = new THREE.MeshBasicMaterial({
+  color: 'red'
+});
+var circleMaterial = new THREE.MeshBasicMaterial({
+  color: 'white'
+});
+
+function addPoints(slots, seq, origin, r) {
+  for (var i = 0; i < seq.length; i++) {
+    var angle = (2 / seq.length) * Math.PI * i;
+    var y = origin.y + r * Math.cos(angle);
+    var x = origin.x + r * Math.sin(angle);
+    var color = seq[i] === '1' ? activeMaterial : inactiveMaterial;
+    var mesh = new THREE.Mesh(circleGeometry, color);
+    mesh.scale.x = mesh.scale.y = mesh.scale.z = 0.05;
+    mesh.position.y = y;
+    mesh.position.x = x;
+    mesh.position.z = 2;
+    slots.push(mesh);
+  }
+
+  return slots;
+}
+
+function Layer(beet, index, pulses, slots, radius, cb, multi) {
+  var self = this;
+  self.circleGeometry = new THREE.CircleGeometry(radius, 50);
+  var circle = new THREE.Mesh(self.circleGeometry, circleMaterial);
+  var currentCircle = new THREE.Mesh(self.circleGeometry, currentMaterial);
+  currentCircle.scale.x = currentCircle.scale.y = currentCircle.scale.z = 0.07;
+  if (multi) circle.position.x = index * -110 + 60;
+  currentCircle.position.copy(circle.position);
+  currentCircle.position.z = 0;
+  var pattern = beet.pattern(pulses, slots);
+  var points = [];
+  this.circle = circle;
+  this.currentCircle = currentCircle;
+  this.points = addPoints(points, pattern.seq, circle.position, radius);
+  var on = function(time, step, drawTime) {
+    cb(time, step, drawTime);
+    setTimeout(function() {
+      var current = self.points[step - 1];
+      if (current) self.currentCircle.position.copy(current.position);
+    }, drawTime * 1000 - 50);
+  };
+  var off = function(time, step, drawTime) {
+    setTimeout(function() {
+      var current = self.points[step - 1];
+      if (current) self.currentCircle.position.copy(current.position);
+    }, drawTime * 1000 - 50);
+  };
+  this.audioLayer = beet.layer(pattern, on, off);
+}
+
+module.exports = Layer;
+
+},{"three":15}],6:[function(require,module,exports){
+var THREE = require('three');
+var Layer = require('./layer');
 
 function Scene(name, beet, options) {
   var self = this;
   this.beet = beet;
   this.name = name;
+  this.r = 100 / options.layers.length;
+  this.w = 500;
+  this.h = 500;
+  this.layers = [];
 
   this.slots = [];
 
   this.scene = new THREE.Scene();
-  this.camera = new THREE.PerspectiveCamera(50, 1);
+  this.camera = new THREE.PerspectiveCamera(50, self.w / self.h);
   this.camera.position.z = 300;
 
-  this.offColor = new THREE.Color(0.5, 0.5, 0.5);
-  this.onColor = new THREE.Color('green');
-
-  this.circleMaterial = new THREE.MeshBasicMaterial({
-    color: 0xffffff
+  options.layers.forEach(function(layer, index) {
+    var l = new Layer(self.beet, index, layer.pulses, layer.slots, self.r, layer.cb, options.layers.length > 1);
+    self.scene.add(l.circle);
+    l.points.forEach(function(point) {
+      self.scene.add(point);
+    });
+    self.scene.add(l.currentCircle);
+    self.beet.add(l.audioLayer);
+    self.layers.push(l);
   });
-
-  this.activeMaterial = new THREE.MeshBasicMaterial({
-    color: self.onColor
-  });
-
-  this.inactiveMaterial = new THREE.MeshBasicMaterial({
-    color: self.offColor
-  });
-
-  this.currentMaterial = new THREE.MeshBasicMaterial({
-    color: 'red'
-  });
-
-  this.circleGeometry = new THREE.CircleGeometry(100, 50);
-
-  self.circleGeometry.verticesNeedUpdate = true;
-  this.circle = new THREE.Mesh(self.circleGeometry, self.circleMaterial);
-  this.scene.add(self.circle);
-  this.currentCircle = new THREE.Mesh(self.circleGeometry, self.currentMaterial);
-  this.currentCircle.scale.x = this.currentCircle.scale.y = this.currentCircle.scale.z = 0.07;
-  this.scene.add(self.currentCircle);
-
-  this.pattern = self.beet.pattern(options.pulses, options.slots);
-  this.layer = self.beet.layer(self.pattern, function(time, step, drawTime) {
-    var osc = self.beet.context.createOscillator();
-    osc.connect(self.beet.context.destination);
-    osc.frequency.value = options.freq;
-    osc.start(time);
-    osc.stop(time + 0.1);
-    setTimeout(function() {
-      var current = self.slots[step - 1];
-      if (current) self.currentCircle.position.copy(current.position);
-    }, drawTime * 1000 - 100);
-  });
-
-  self.beet.add(self.layer);
-
-  this._addPoints();
 
   this.renderer = new THREE.WebGLRenderer({
     antialias: true
   });
 
-  this.renderer.setSize(500, 500);
+  this.renderer.setSize(self.w, self.h);
   document.body.appendChild(self.renderer.domElement);
 }
 
@@ -188,42 +249,15 @@ Scene.prototype.render = function() {
   this.renderer.render(self.scene, self.camera);
 };
 
-Scene.prototype._addPoints = function() {
-  var self = this;
-
-  self.slots.forEach(function(slot) {
-    self.scene.remove(slot);
-  });
-
-  this.slots = [];
-
-  for (var i = 0; i < self.pattern.seq.length; i++) {
-    var angle = (2 / self.pattern.seq.length) * Math.PI * i;
-    var y = 100 * Math.cos(angle);
-    var x = 100 * Math.sin(angle);
-
-    var color = self.pattern.seq[i] === '1' ? self.activeMaterial : self.inactiveMaterial;
-    var mesh = new THREE.Mesh(self.circleGeometry, color);
-    mesh.scale.x = mesh.scale.y = mesh.scale.z = 0.05;
-    mesh.position.y = y;
-    mesh.position.x = x;
-    self.slots.push(mesh);
-  }
-
-  this.slots.forEach(function(slot, index) {
-    self.scene.add(slot);
-  });
-};
-
 Scene.prototype.change = function(options) {
   var self = this;
   self.pattern.update(options.pulses, options.slots);
-  self._addPoints();
+  addPoints();
 };
 
 module.exports = Scene;
 
-},{"three":13}],5:[function(require,module,exports){
+},{"./layer":5,"three":15}],7:[function(require,module,exports){
 var Metro = require('wa-metro');
 
 function Layer(context, tempo, sequence, on, off) {
@@ -261,7 +295,7 @@ Layer.prototype.stop = function () {
 };
 
 module.exports = Layer;
-},{"wa-metro":14}],6:[function(require,module,exports){
+},{"wa-metro":16}],8:[function(require,module,exports){
 var bjork = require('bjorklund');
 var watch = require('watchjs').watch;
 
@@ -297,7 +331,7 @@ Pattern.prototype.shift = function (offset) {
 };
 
 module.exports = Pattern;
-},{"bjorklund":8,"watchjs":18}],7:[function(require,module,exports){
+},{"bjorklund":10,"watchjs":20}],9:[function(require,module,exports){
 var notes = {
   "c": 0,
   "c#": 1,
@@ -361,7 +395,7 @@ module.exports.mtop = function mtop(midi_note) {
   return Math.pow(2, (midi_note - 60) / 12);
 };
 module.exports.mtof = mtof;
-},{}],8:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 var _ = require('lodash');
 
 module.exports = function bjorklund(pulses, length) {
@@ -403,7 +437,7 @@ function generate_zero_based(ones, zeros) {
     return ones.reverse().join().replace(/,/g, '');
   }
 }
-},{"lodash":9}],9:[function(require,module,exports){
+},{"lodash":11}],11:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -12758,10 +12792,10 @@ function generate_zero_based(ones, zeros) {
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],10:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 module.exports = require('./vendor/dat.gui')
 module.exports.color = require('./vendor/dat.color')
-},{"./vendor/dat.color":11,"./vendor/dat.gui":12}],11:[function(require,module,exports){
+},{"./vendor/dat.color":13,"./vendor/dat.gui":14}],13:[function(require,module,exports){
 /**
  * dat-gui JavaScript Controller Library
  * http://code.google.com/p/dat-gui
@@ -13517,7 +13551,7 @@ dat.color.math = (function () {
 })(),
 dat.color.toString,
 dat.utils.common);
-},{}],12:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 /**
  * dat-gui JavaScript Controller Library
  * http://code.google.com/p/dat-gui
@@ -17178,7 +17212,7 @@ dat.dom.CenteredDiv = (function (dom, common) {
 dat.utils.common),
 dat.dom.dom,
 dat.utils.common);
-},{}],13:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 var self = self || {};// File:src/Three.js
 
 /**
@@ -53163,9 +53197,9 @@ if (typeof exports !== 'undefined') {
   this['THREE'] = THREE;
 }
 
-},{}],14:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 module.exports = require('./lib/wa-metro');
-},{"./lib/wa-metro":15}],15:[function(require,module,exports){
+},{"./lib/wa-metro":17}],17:[function(require,module,exports){
 var work = require('webworkify');
 
 function Metro(context, callback) {
@@ -53245,7 +53279,7 @@ Metro.prototype._next = function _next() {
 
 module.exports = Metro;
 window.Metro = Metro;
-},{"./worker.js":16,"webworkify":17}],16:[function(require,module,exports){
+},{"./worker.js":18,"webworkify":19}],18:[function(require,module,exports){
 module.exports = function (self) {
   var interval = 25;
   var timer = null;
@@ -53265,7 +53299,7 @@ module.exports = function (self) {
     }
   };
 };
-},{}],17:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 var bundleFn = arguments[3];
 var sources = arguments[4];
 var cache = arguments[5];
@@ -53322,7 +53356,7 @@ module.exports = function (fn) {
     ));
 };
 
-},{}],18:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 /**
  * DEVELOPED BY
  * GIL LOPES BUENO
