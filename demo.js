@@ -1,4 +1,5 @@
 var dat = require('dat-gui');
+var prism = require('prismjs');
 
 var Scene = require('./lib/demo/scene');
 var Beet = require('./index');
@@ -9,10 +10,11 @@ var beet = new Beet({
 });
 
 var scene = new Scene('eu', {
+  element: document.getElementById('simple'),
   layers: [
     {
-      pulses: 8,
-      slots: 9,
+      pulses: 4,
+      slots: 5,
       cb: function(time, step) {
         var osc = context.createOscillator();
         osc.connect(context.destination);
