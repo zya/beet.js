@@ -2,6 +2,7 @@
 <html>
 <head>
   <title></title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
   <link rel="stylesheet" type="text/css" href="./lib/prism.css">
   <style type="text/css">
   html,body{
@@ -19,21 +20,59 @@
     color: white;
   }
   .example {
-    width: 30%;
+    width: 40%;
     margin: auto;
     height: 100%;
   }
+  .icon {
+    color: white;
+    font-size: 70px;
+    margin-bottom: 10px;
+  }
+  @media (max-width: 1200px) {
+  .example {
+    width: 43%;
+  }
+  @media (max-width: 1000px) {
+  .example {
+    width: 50%;
+  }
+  @media (max-width: 900px) {
+  .example {
+    width: 60%;
+
+  }
+  .icon {
+    font-size: 50px;
+  }
+  @media (max-width: 700px) {
+  .example {
+    width: 90%;
+  }
+  .icon {
+    font-size: 40px;
+  }
+  @media (max-width: 600px) {
+  code {
+    font-size: 14px;
+  }
+}
   </style>
 </head>
 <body>
 <section class='example' id='simple'>
-<h1>Title</h1>
-<pre class="language-javascript">
-<code>
-var beet = require('beet.js');
-var test = 'hello';
-</code>
-</pre>
+  <h1><i class='fa'>Euclidean Rhythm - 5/9</i></h1>
+  <i class="fa fa-play-circle-o icon"></i>
+  <pre class="language-javascript"><code>
+var Beet = require('beet.js');
+var context = new AudioContext();
+var beet = new Beet({
+  context: context
+});
+var pattern = beet.pattern(5, 9); // returns 101110111
+var layer = beet.layer(pattern, callback);
+beet.add(layer).start();
+</code></pre>
 </section>
 </body>
 <script type="text/javascript" src="build/demo.js"></script>

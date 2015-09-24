@@ -13,31 +13,24 @@ var scene = new Scene('eu', {
   element: document.getElementById('simple'),
   layers: [
     {
-      pulses: 4,
-      slots: 5,
+      pulses: 5,
+      slots: 9,
       cb: function(time, step) {
         var osc = context.createOscillator();
-        osc.connect(context.destination);
-        osc.frequency.value = 220;
+        var gain = context.createGain();
+        osc.connect(gain);
+        gain.connect(context.destination);
+        beet.utils.envelope(gain.gain, time, {
+          attack: 0.1,
+          release: 0.2
+        });
+        osc.frequency.value = beet.utils.ntof('c3');
         osc.start(time);
-        osc.stop(time + 0.2);
+        osc.stop(time + 0.4);
       }
     }
-    // {
-    //   pulses: 7,
-    //   slots: 7,
-    //   cb: function(time, step) {
-    //     var osc = context.createOscillator();
-    //     osc.connect(context.destination);
-    //     osc.frequency.value = 440;
-    //     osc.start(time);
-    //     osc.stop(time + 0.2);
-    //   }
-    // }
   ]
 });
-
-
 
 scene.start();
 
