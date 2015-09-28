@@ -33,11 +33,132 @@ var scene = new Scene('eu', {
   ]
 });
 
-scene.start();
+var scene2 = new Scene('eu', {
+  element: document.getElementById('simple2'),
+  layers: [
+    {
+      pulses: 9,
+      slots: 13,
+      cb: function(time, step) {
+        var osc = context.createOscillator();
+        var gain = context.createGain();
+        osc.connect(gain);
+        gain.connect(context.destination);
+        beet.utils.envelope(gain.gain, time, {
+          attack: 0.1,
+          release: 0.2
+        });
+        osc.frequency.value = beet.utils.ntof('c3');
+        osc.start(time);
+        osc.stop(time + 0.4);
+      }
+    }
+  ]
+});
+
+var scene3 = new Scene('eu', {
+  element: document.getElementById('simple3'),
+  layers: [
+    {
+      pulses: 4,
+      slots: 4,
+      cb: function(time, step) {
+        var osc = context.createOscillator();
+        var gain = context.createGain();
+        osc.connect(gain);
+        gain.connect(context.destination);
+        beet.utils.envelope(gain.gain, time, {
+          attack: 0.1,
+          release: 0.2
+        });
+        osc.frequency.value = beet.utils.ntof('c3');
+        osc.start(time);
+        osc.stop(time + 0.4);
+      }
+    },
+    {
+      pulses: 5,
+      slots: 5,
+      cb: function(time, step) {
+        var osc = context.createOscillator();
+        var gain = context.createGain();
+        osc.connect(gain);
+        gain.connect(context.destination);
+        beet.utils.envelope(gain.gain, time, {
+          attack: 0.1,
+          release: 0.2
+        });
+        osc.frequency.value = beet.utils.ntof('f3');
+        osc.start(time);
+        osc.stop(time + 0.4);
+      }
+    }
+  ]
+});
+
+var scene4 = new Scene('eu', {
+  element: document.getElementById('simple4'),
+  layers: [
+    {
+      pulses: 4,
+      slots: 4,
+      cb: function(time, step) {
+        var osc = context.createOscillator();
+        var gain = context.createGain();
+        osc.connect(gain);
+        gain.connect(context.destination);
+        beet.utils.envelope(gain.gain, time, {
+          attack: 0.1,
+          release: 0.2
+        });
+        osc.frequency.value = beet.utils.ntof('c3');
+        osc.start(time);
+        osc.stop(time + 0.4);
+      }
+    },
+    {
+      pulses: 5,
+      slots: 5,
+      cb: function(time, step) {
+        var osc = context.createOscillator();
+        var gain = context.createGain();
+        osc.connect(gain);
+        gain.connect(context.destination);
+        beet.utils.envelope(gain.gain, time, {
+          attack: 0.1,
+          release: 0.2
+        });
+        osc.frequency.value = beet.utils.ntof('f3');
+        osc.start(time);
+        osc.stop(time + 0.4);
+      }
+    },
+    {
+      pulses: 2,
+      slots: 4,
+      cb: function(time, step) {
+        var osc = context.createOscillator();
+        var gain = context.createGain();
+        osc.connect(gain);
+        gain.connect(context.destination);
+        beet.utils.envelope(gain.gain, time, {
+          attack: 0.1,
+          release: 0.2
+        });
+        osc.frequency.value = beet.utils.ntof('a0');
+        osc.start(time);
+        osc.stop(time + 0.4);
+      }
+    }
+  ]
+});
 
 function animate() {
   requestAnimationFrame(animate);
   scene.render();
+  scene2.render();
+  scene3.render();
+  scene4.render();
 }
 
 animate();
@@ -170,14 +291,14 @@ function addPoints(slots, seq, origin, r) {
   return slots;
 }
 
-function Layer(beet, index, pulses, slots, radius, cb, multi) {
+function Layer(beet, index, pulses, slots, radius, cb, length) {
   var self = this;
   var points = [];
 
   self.circleGeometry = new THREE.CircleGeometry(radius, 50);
 
   var circle = new THREE.Mesh(self.circleGeometry, circleMaterial);
-  if (multi) circle.position.x = index * -110 + 60;
+  if (length > 1) circle.position.x = index * (-((radius * 2))) + (radius * (length - 1));
 
   var currentCircle = new THREE.Mesh(self.circleGeometry, currentMaterial);
   currentCircle.scale.x = currentCircle.scale.y = currentCircle.scale.z = 0.12;
@@ -192,7 +313,7 @@ function Layer(beet, index, pulses, slots, radius, cb, multi) {
       var current = self.points[step - 1];
       if (current) {
         self.currentCircle.position.copy(current.position);
-        self.currentCircle.position.z = 1;
+        self.currentCircle.position.z = 0.1;
       }
     }, drawTime * 1000 - 50);
   };
@@ -202,7 +323,7 @@ function Layer(beet, index, pulses, slots, radius, cb, multi) {
       var current = self.points[step - 1];
       if (current) {
         self.currentCircle.position.copy(current.position);
-        self.currentCircle.position.z = 1;
+        self.currentCircle.position.z = 0.1;
       }
     }, drawTime * 1000 - 50);
   };
@@ -228,17 +349,20 @@ function Scene(name, options) {
   this.name = name;
   this.r = 100 / options.layers.length;
   this.w = (window.innerWidth / 4) * options.layers.length;
-  this.h = (window.innerWidth / 4) * options.layers.length;
+  this.h = window.innerWidth / 4;
   this.layers = [];
-
+  this.element = options.element;
+  console.log(options.layers.length);
+  this.playButton = self.element.childNodes[3];
   this.slots = [];
+  this.started = false;
 
   this.scene = new THREE.Scene();
   this.camera = new THREE.PerspectiveCamera(50, self.w / self.h);
-  this.camera.position.z = 300;
+  this.camera.position.z = 300 / options.layers.length;
 
   options.layers.forEach(function(layer, index) {
-    var l = new Layer(self.beet, index, layer.pulses, layer.slots, self.r, layer.cb, options.layers.length > 1);
+    var l = new Layer(self.beet, index, layer.pulses, layer.slots, self.r, layer.cb, options.layers.length);
     self.scene.add(l.circle);
     l.points.forEach(function(point) {
       self.scene.add(point);
@@ -254,7 +378,8 @@ function Scene(name, options) {
   });
 
   this.renderer.setSize(self.w, self.h);
-  options.element.insertBefore(self.renderer.domElement, options.element.children[0]);
+  this.element.insertBefore(self.renderer.domElement, self.element.children[0]);
+  this._addEventListeners();
 }
 
 Scene.prototype.render = function() {
@@ -267,9 +392,29 @@ Scene.prototype.change = function(options) {
 };
 
 Scene.prototype.start = function() {
+  var self = this;
+  self.playButton.className = 'fa fa-stop icon';
   this.beet.start();
+  self.started = true;
 };
 
+Scene.prototype.stop = function() {
+  var self = this;
+  self.playButton.className = 'fa fa-play icon';
+  this.beet.stop();
+  self.started = false;
+};
+
+Scene.prototype._addEventListeners = function() {
+  var self = this;
+  self.playButton.addEventListener('click', function() {
+    if (self.started) {
+      self.stop();
+    } else {
+      self.start();
+    }
+  });
+};
 module.exports = Scene;
 
 },{"./context":4,"./layer":5,"three":16}],7:[function(require,module,exports){

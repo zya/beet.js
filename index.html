@@ -20,49 +20,30 @@
     color: white;
   }
   .example {
-    width: 40%;
+    position: relative;
     margin: auto;
-    height: 100%;
   }
   .icon {
     color: white;
-    font-size: 70px;
-    margin-bottom: 10px;
-  }
-  @media (max-width: 1200px) {
-  .example {
-    width: 43%;
-  }
-  @media (max-width: 1000px) {
-  .example {
-    width: 50%;
-  }
-  @media (max-width: 900px) {
-  .example {
-    width: 60%;
-
-  }
-  .icon {
-    font-size: 50px;
-  }
-  @media (max-width: 700px) {
-  .example {
-    width: 90%;
-  }
-  .icon {
     font-size: 40px;
+    margin-bottom: 10px;
+    cursor: pointer;
   }
-  @media (max-width: 600px) {
-  code {
-    font-size: 14px;
+
+  .icon:hover {
+    color: #BDBDBD;
   }
-}
+  .code-container {
+    width: 40%;
+    margin-left: 30%;
+  }
   </style>
 </head>
 <body>
 <section class='example' id='simple'>
   <h1><i class='fa'>Euclidean Rhythm - 5/9</i></h1>
-  <i class="fa fa-play-circle-o icon"></i>
+  <i class="fa fa-play icon" id="play"></i>
+  <div class="code-container">
   <pre class="language-javascript"><code>
 var Beet = require('beet.js');
 var context = new AudioContext();
@@ -73,6 +54,57 @@ var pattern = beet.pattern(5, 9); // returns 101110111
 var layer = beet.layer(pattern, callback);
 beet.add(layer).start();
 </code></pre>
+  </div>
+
+</section>
+
+<section class='example' id='simple2'>
+  <h1><i class='fa'>Euclidean Rhythm - 9/13</i></h1>
+  <i class="fa fa-play icon" id="play"></i>
+  <div class="code-container">
+  <pre class="language-javascript"><code>
+var Beet = require('beet.js');
+var context = new AudioContext();
+var beet = new Beet({
+  context: context
+});
+var pattern = beet.pattern(9, 13); // returns 1011011011011
+var layer = beet.layer(pattern, callback);
+beet.add(layer).start();
+</code></pre>
+  </div>
+</section>
+<section class='example' id='simple3'>
+  <h1><i class='fa'>Euclidean Rhythm - 9/13</i></h1>
+  <i class="fa fa-play icon" id="play"></i>
+  <div class="code-container">
+  <pre class="language-javascript"><code>
+var Beet = require('beet.js');
+var context = new AudioContext();
+var beet = new Beet({
+  context: context
+});
+var pattern = beet.pattern(9, 13); // returns 1011011011011
+var layer = beet.layer(pattern, callback);
+beet.add(layer).start();
+</code></pre>
+  </div>
+</section>
+<section class='example' id='simple4'>
+  <h1><i class='fa'>Euclidean Rhythm - 9/13</i></h1>
+  <i class="fa fa-play icon" id="play"></i>
+  <div class="code-container">
+  <pre class="language-javascript"><code>
+var Beet = require('beet.js');
+var context = new AudioContext();
+var beet = new Beet({
+  context: context
+});
+var pattern = beet.pattern(9, 13); // returns 1011011011011
+var layer = beet.layer(pattern, callback);
+beet.add(layer).start();
+</code></pre>
+  </div>
 </section>
 </body>
 <script type="text/javascript" src="build/demo.js"></script>
