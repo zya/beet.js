@@ -1,6 +1,6 @@
 {
   "name": "beet.js",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Polyrhythmic Sequencer for Web Audio API",
   "main": "index.js",
   "scripts": {
