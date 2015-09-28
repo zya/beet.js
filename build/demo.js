@@ -101,7 +101,8 @@ var scene4 = new Scene('Multiple Layers', {
   layers: [
     {
       pulses: 4,
-      slots: 4,
+      slots: 8,
+      tempo: 120,
       cb: function (time, step) {
         var osc = context.createOscillator();
         var gain = context.createGain();
@@ -117,8 +118,9 @@ var scene4 = new Scene('Multiple Layers', {
       }
     },
     {
-      pulses: 5,
-      slots: 5,
+      pulses: 3,
+      slots: 8,
+      tempo: 60,
       cb: function (time, step) {
         var osc = context.createOscillator();
         var gain = context.createGain();
@@ -134,8 +136,9 @@ var scene4 = new Scene('Multiple Layers', {
       }
     },
     {
-      pulses: 2,
+      pulses: 4,
       slots: 4,
+      tempo: 120 / 3,
       cb: function (time, step) {
         var osc = context.createOscillator();
         var gain = context.createGain();
@@ -290,14 +293,14 @@ function addPoints(slots, seq, origin, r) {
   return slots;
 }
 
-function Layer(beet, index, pulses, slots, radius, cb, length) {
+function Layer(beet, tempo, index, pulses, slots, radius, cb, length) {
   var self = this;
   var points = [];
-
+  self.tempo = tempo || beet.tempo;
   self.circleGeometry = new THREE.CircleGeometry(radius, 50);
 
   var circle = new THREE.Mesh(self.circleGeometry, circleMaterial);
-  if (length > 1) circle.position.x = index * (-((radius * 2) + 10)) + (radius * (length - 1)) + 5;
+  if (length > 1) circle.position.x = index * (-((radius * 2) + 20)) + (radius * (length - 1)) + 10;
 
   var currentCircle = new THREE.Mesh(self.circleGeometry, currentMaterial);
   currentCircle.scale.x = currentCircle.scale.y = currentCircle.scale.z = 0.12;
@@ -330,6 +333,7 @@ function Layer(beet, index, pulses, slots, radius, cb, length) {
   this.circle = circle;
   this.currentCircle = currentCircle;
   this.audioLayer = beet.layer(pattern, on, off);
+  this.audioLayer.tempo = self.tempo;
   this.points = addPoints(points, pattern.seq, circle.position, radius);
 }
 
@@ -358,11 +362,10 @@ function Scene(name, options) {
 
   this.scene = new THREE.Scene();
   this.camera = new THREE.OrthographicCamera(self.w / -2, self.w / 2, self.h / 2, self.h / -2, 1, 1000);
-  console.log(self.camera);
   this.camera.position.z = 500;
 
   options.layers.forEach(function (layer, index) {
-    var l = new Layer(self.beet, index, layer.pulses, layer.slots, self.r, layer.cb, options.layers.length);
+    var l = new Layer(self.beet, layer.tempo, index, layer.pulses, layer.slots, self.r, layer.cb, options.layers.length);
     self.scene.add(l.circle);
     l.points.forEach(function (point) {
       self.scene.add(point);

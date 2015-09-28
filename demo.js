@@ -100,7 +100,8 @@ var scene4 = new Scene('Multiple Layers', {
   layers: [
     {
       pulses: 4,
-      slots: 4,
+      slots: 8,
+      tempo: 120,
       cb: function (time, step) {
         var osc = context.createOscillator();
         var gain = context.createGain();
@@ -116,8 +117,9 @@ var scene4 = new Scene('Multiple Layers', {
       }
     },
     {
-      pulses: 5,
-      slots: 5,
+      pulses: 3,
+      slots: 8,
+      tempo: 60,
       cb: function (time, step) {
         var osc = context.createOscillator();
         var gain = context.createGain();
@@ -133,8 +135,9 @@ var scene4 = new Scene('Multiple Layers', {
       }
     },
     {
-      pulses: 2,
+      pulses: 4,
       slots: 4,
+      tempo: 120 / 3,
       cb: function (time, step) {
         var osc = context.createOscillator();
         var gain = context.createGain();
