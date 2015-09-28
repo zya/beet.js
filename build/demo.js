@@ -54141,6 +54141,7 @@ Metro.prototype.pause = function () {
 Metro.prototype.stop = function () {
   this._first = true;
   this._is_running = false;
+  this._step = 1;
   this._worker.postMessage('stop');
 };
 
