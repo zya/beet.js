@@ -330,7 +330,6 @@ function Layer(beet, index, pulses, slots, radius, cb, length) {
   this.circle = circle;
   this.currentCircle = currentCircle;
   this.audioLayer = beet.layer(pattern, on, off);
-  console.log(self.audioLayer);
   this.points = addPoints(points, pattern.seq, circle.position, radius);
 }
 
@@ -421,13 +420,15 @@ Scene.prototype._addEventListeners = function () {
 module.exports = Scene;
 },{"./context":4,"./layer":5,"three":16,"verge":17}],7:[function(require,module,exports){
 var Metro = require('wa-metro');
+var watch = require('watchjs').watch;
 
 function Layer(context, tempo, sequence, on, off) {
   if (!off) off = function () {};
   var self = this;
   this.on = on;
   this.off = off;
-  this.metro = new Metro(context, function (time, step, timeFromScheduled) {
+  this.tempo = tempo;
+  self.metro = new Metro(context, function (time, step, timeFromScheduled) {
     if (self.metro.steps !== sequence.seq.length) {
       self.metro.steps = sequence.seq.length;
     }
@@ -437,8 +438,13 @@ function Layer(context, tempo, sequence, on, off) {
       self.off(time, step, timeFromScheduled);
     }
   });
+
   this.metro.steps = sequence.seq.length;
-  this.metro.tempo = tempo;
+  this.metro.tempo = this.tempo;
+
+  watch(self, ['tempo'], function () {
+    self.metro.tempo = self.tempo;
+  });
 }
 
 Layer.prototype.start = function () {
@@ -457,7 +463,7 @@ Layer.prototype.stop = function () {
 };
 
 module.exports = Layer;
-},{"wa-metro":18}],8:[function(require,module,exports){
+},{"wa-metro":18,"watchjs":22}],8:[function(require,module,exports){
 var bjork = require('bjorklund');
 var watch = require('watchjs').watch;
 
