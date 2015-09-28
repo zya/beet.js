@@ -290,9 +290,9 @@ Beet.prototype._change_tempo = function (value) {
 window.Beet = Beet;
 module.exports = Beet;
 },{"./layer":7,"./pattern":8,"./utils":9,"watchjs":22}],4:[function(require,module,exports){
+window.AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext || window.oAudioContext;
 var context = new AudioContext();
 module.exports = context;
-
 },{}],5:[function(require,module,exports){
 var THREE = require('three');
 var circleGeometry = new THREE.CircleGeometry(50, 100);

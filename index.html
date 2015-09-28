@@ -3,54 +3,24 @@
 <head>
   <title></title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
-  <link rel="stylesheet" type="text/css" href="./lib/prism.css">
-  <style type="text/css">
-  html,body{
-    background-color: black;
-    text-align: center;
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-  }
-  code {
-    font-size: 14px;
-  }
-  h1 {
-    color: white;
-  }
-  .example {
-    position: relative;
-    margin: auto;
-  }
-  .icon {
-    color: white;
-    font-size: 40px;
-    margin-bottom: 10px;
-    cursor: pointer;
-  }
-
-  .icon:hover {
-    color: #BDBDBD;
-  }
-  .code-container {
-    width: 50%;
-    margin-left: 25%;
-  }
-  hr {
-    border-color: #757575;
-    width: 40%;
-    margin-top: 20px;
-    margin-bottom: 20px;
-  }
-  .tips {
-    color: white;
-  }
-  </style>
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" type="text/css" href="./lib/demo/demo.css">
+  <link rel="stylesheet" type="text/css" href="./lib/demo/prism.css">
 </head>
 <body>
+<section class='heading'>
+  <h1 class='title'>beet.js</h1>
+  <p class='desc'>
+    Beet.js is a polyrhythmic sequencer library for Web Audio API.<br>
+    The sequencer can have multiple layers where each layer can have an independent tempo and step count.<br>This feature allows you to create complex rhythmic sequences such as polyrhythms and euclidean rhythms using a simple API.<br>
+    <div class='links'>
+      <a href="https://github.com/zya/beet.js" target="_blank" class="fa fa-github github"></a>
+    </div>
+  </p>
+</section>
+<hr>
 <section class='example' id='59'>
-  <h1><i class='fa'>Euclidean Rhythm - 5/9</i></h1>
+  <h1 class='text' class='text'>Euclidean Rhythm - 5/9</h1>
   <i class="fa fa-play icon" id="play"></i>
   <div class="code-container">
   <pre class="language-javascript"><code>
@@ -67,7 +37,7 @@ beet.add(layer).start();
 </section>
 <hr>
 <section class='example' id='913'>
-  <h1><i class='fa'>Euclidean Rhythm - 9/13</i></h1>
+  <h1 class='text'>Euclidean Rhythm - 9/13</h1>
   <i class="fa fa-play icon" id="play"></i>
   <div class="code-container">
   <pre class="language-javascript"><code>
@@ -84,7 +54,7 @@ beet.add(layer).start();
 </section>
 <hr>
 <section class='example' id='poly1'>
-  <h1><i class='fa'>Polyrhythm - 5 over 4 - Two Layers</i></h1>
+  <h1 class='text'>Polyrhythm - 5 over 4 - Two Layers</h1>
   <i class="fa fa-play icon" id="play"></i>
   <div class="code-container">
   <pre class="language-javascript"><code>
@@ -105,9 +75,9 @@ beet..start();
 </section>
 <hr>
 <section class='example' id='layered'>
-  <h1><i class='fa'>Multiple Layers With Different Tempos</i></h1>
+  <h1 class='text'>Multiple Layers With Different Tempos</h1>
   <i class="fa fa-play icon" id="play"></i><br>
-  <p class='fa tips'>each layer can have an independent speed. the tempo can also be changed in real-time</p>
+  <p class='text tips'>each layer can have an independent speed. the tempo can also be changed in real-time</p>
   <div class="code-container">
   <pre class="language-javascript"><code>
 var Beet = require('beet.js');
@@ -133,9 +103,9 @@ beet.start();
 </section>
 <hr>
 <section class='example' id='off'>
-  <h1><i class='fa'>On/Off Callbacks</i></h1>
+  <h1 class='text'>On/Off Callbacks</h1>
   <i class="fa fa-play icon" id="play"></i><br>
-  <p class='fa tips'>each layer takes two callbacks. one for 'on' steps and one for 'off' steps.</p>
+  <p class='text tips'>each layer takes two callbacks. one for 'on' steps and one for 'off' steps.</p>
   <div class="code-container">
   <pre class="language-javascript"><code>
 var Beet = require('beet.js');
@@ -151,7 +121,7 @@ beet.add(layer).start();
 </code></pre>
   </div>
 </section>
-<br>
+<br><br>
 </body>
 <script type="text/javascript" src="build/demo.js"></script>
 </html>
