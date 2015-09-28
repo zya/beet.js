@@ -16,6 +16,7 @@
     "dat-gui": "^0.5.0",
     "prismjs": "prismjs/prism",
     "three": "^0.72.0",
+    "verge": "^1.9.1",
     "wa-metro": "^1.0.5",
     "watchjs": "0.0.0"
   },

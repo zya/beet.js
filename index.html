@@ -34,13 +34,19 @@
     color: #BDBDBD;
   }
   .code-container {
+    width: 50%;
+    margin-left: 25%;
+  }
+  hr {
+    border-color: #757575;
     width: 40%;
-    margin-left: 30%;
+    margin-top: 20px;
+    margin-bottom: 20px;
   }
   </style>
 </head>
 <body>
-<section class='example' id='simple'>
+<section class='example' id='59'>
   <h1><i class='fa'>Euclidean Rhythm - 5/9</i></h1>
   <i class="fa fa-play icon" id="play"></i>
   <div class="code-container">
@@ -57,8 +63,8 @@ beet.add(layer).start();
   </div>
 
 </section>
-
-<section class='example' id='simple2'>
+<hr>
+<section class='example' id='913'>
   <h1><i class='fa'>Euclidean Rhythm - 9/13</i></h1>
   <i class="fa fa-play icon" id="play"></i>
   <div class="code-container">
@@ -74,7 +80,29 @@ beet.add(layer).start();
 </code></pre>
   </div>
 </section>
-<section class='example' id='simple3'>
+<hr>
+<section class='example' id='poly1'>
+  <h1><i class='fa'>Polyrhythm - 5 over 4 - Two Layers</i></h1>
+  <i class="fa fa-play icon" id="play"></i>
+  <div class="code-container">
+  <pre class="language-javascript"><code>
+var Beet = require('beet.js');
+var context = new AudioContext();
+var beet = new Beet({
+  context: context
+});
+var fours = beet.pattern(4); // returns 1111
+var layer1 = beet.layer(fours, foursCallback);
+var fives = beet.pattern(5); // returns 11111
+var layer2 = beet.layer(fives, fivesCallback);
+beet.add(layer1);
+beet.add(layer2);
+beet..start();
+</code></pre>
+  </div>
+</section>
+<hr>
+<section class='example' id='layered'>
   <h1><i class='fa'>Euclidean Rhythm - 9/13</i></h1>
   <i class="fa fa-play icon" id="play"></i>
   <div class="code-container">
@@ -90,22 +118,7 @@ beet.add(layer).start();
 </code></pre>
   </div>
 </section>
-<section class='example' id='simple4'>
-  <h1><i class='fa'>Euclidean Rhythm - 9/13</i></h1>
-  <i class="fa fa-play icon" id="play"></i>
-  <div class="code-container">
-  <pre class="language-javascript"><code>
-var Beet = require('beet.js');
-var context = new AudioContext();
-var beet = new Beet({
-  context: context
-});
-var pattern = beet.pattern(9, 13); // returns 1011011011011
-var layer = beet.layer(pattern, callback);
-beet.add(layer).start();
-</code></pre>
-  </div>
-</section>
+<hr>
 </body>
 <script type="text/javascript" src="build/demo.js"></script>
 </html>

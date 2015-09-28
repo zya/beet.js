@@ -9,13 +9,13 @@ var beet = new Beet({
   context: context
 });
 
-var scene = new Scene('eu', {
-  element: document.getElementById('simple'),
+var scene1 = new Scene('Euclidean 5/9', {
+  element: document.getElementById('59'),
   layers: [
     {
       pulses: 5,
       slots: 9,
-      cb: function(time, step) {
+      cb: function (time, step) {
         var osc = context.createOscillator();
         var gain = context.createGain();
         osc.connect(gain);
@@ -32,13 +32,13 @@ var scene = new Scene('eu', {
   ]
 });
 
-var scene2 = new Scene('eu', {
-  element: document.getElementById('simple2'),
+var scene2 = new Scene('Euclidean 9/13', {
+  element: document.getElementById('913'),
   layers: [
     {
       pulses: 9,
       slots: 13,
-      cb: function(time, step) {
+      cb: function (time, step) {
         var osc = context.createOscillator();
         var gain = context.createGain();
         osc.connect(gain);
@@ -55,13 +55,13 @@ var scene2 = new Scene('eu', {
   ]
 });
 
-var scene3 = new Scene('eu', {
-  element: document.getElementById('simple3'),
+var scene3 = new Scene('Poly 5 4', {
+  element: document.getElementById('poly1'),
   layers: [
     {
       pulses: 4,
       slots: 4,
-      cb: function(time, step) {
+      cb: function (time, step) {
         var osc = context.createOscillator();
         var gain = context.createGain();
         osc.connect(gain);
@@ -78,7 +78,7 @@ var scene3 = new Scene('eu', {
     {
       pulses: 5,
       slots: 5,
-      cb: function(time, step) {
+      cb: function (time, step) {
         var osc = context.createOscillator();
         var gain = context.createGain();
         osc.connect(gain);
@@ -95,13 +95,13 @@ var scene3 = new Scene('eu', {
   ]
 });
 
-var scene4 = new Scene('eu', {
-  element: document.getElementById('simple4'),
+var scene4 = new Scene('Multiple Layers', {
+  element: document.getElementById('layered'),
   layers: [
     {
       pulses: 4,
       slots: 4,
-      cb: function(time, step) {
+      cb: function (time, step) {
         var osc = context.createOscillator();
         var gain = context.createGain();
         osc.connect(gain);
@@ -118,7 +118,7 @@ var scene4 = new Scene('eu', {
     {
       pulses: 5,
       slots: 5,
-      cb: function(time, step) {
+      cb: function (time, step) {
         var osc = context.createOscillator();
         var gain = context.createGain();
         osc.connect(gain);
@@ -135,7 +135,7 @@ var scene4 = new Scene('eu', {
     {
       pulses: 2,
       slots: 4,
-      cb: function(time, step) {
+      cb: function (time, step) {
         var osc = context.createOscillator();
         var gain = context.createGain();
         osc.connect(gain);
@@ -154,7 +154,7 @@ var scene4 = new Scene('eu', {
 
 function animate() {
   requestAnimationFrame(animate);
-  scene.render();
+  scene1.render();
   scene2.render();
   scene3.render();
   scene4.render();
