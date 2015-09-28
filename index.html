@@ -43,6 +43,9 @@
     margin-top: 20px;
     margin-bottom: 20px;
   }
+  .tips {
+    color: white;
+  }
   </style>
 </head>
 <body>
@@ -61,7 +64,6 @@ var layer = beet.layer(pattern, callback);
 beet.add(layer).start();
 </code></pre>
   </div>
-
 </section>
 <hr>
 <section class='example' id='913'>
@@ -104,7 +106,8 @@ beet..start();
 <hr>
 <section class='example' id='layered'>
   <h1><i class='fa'>Multiple Layers With Different Tempos</i></h1>
-  <i class="fa fa-play icon" id="play"></i>
+  <i class="fa fa-play icon" id="play"></i><br>
+  <p class='fa tips'>each layer can have an independent speed. the tempo can also be changed in real-time</p>
   <div class="code-container">
   <pre class="language-javascript"><code>
 var Beet = require('beet.js');
@@ -129,6 +132,26 @@ beet.start();
   </div>
 </section>
 <hr>
+<section class='example' id='off'>
+  <h1><i class='fa'>On/Off Callbacks</i></h1>
+  <i class="fa fa-play icon" id="play"></i><br>
+  <p class='fa tips'>each layer takes two callbacks. one for 'on' steps and one for 'off' steps.</p>
+  <div class="code-container">
+  <pre class="language-javascript"><code>
+var Beet = require('beet.js');
+var context = new AudioContext();
+var beet = new Beet({
+  context: context
+});
+var pattern = beet.pattern(4, 9);
+// callbackOn will be called on the green slots
+// callbackOff will be called on the grey slots
+var layer = beet.layer(pattern, callbackOn, callbackOff);
+beet.add(layer).start();
+</code></pre>
+  </div>
+</section>
+<br>
 </body>
 <script type="text/javascript" src="build/demo.js"></script>
 </html>

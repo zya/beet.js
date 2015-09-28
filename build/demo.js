@@ -156,12 +156,50 @@ var scene4 = new Scene('Multiple Layers', {
   ]
 });
 
+
+var scene5 = new Scene('On/off', {
+  element: document.getElementById('off'),
+  layers: [
+    {
+      pulses: 4,
+      slots: 9,
+      cb: function (time, step) {
+        var osc = context.createOscillator();
+        var gain = context.createGain();
+        osc.connect(gain);
+        gain.connect(context.destination);
+        beet.utils.envelope(gain.gain, time, {
+          attack: 0.1,
+          release: 0.2
+        });
+        osc.frequency.value = beet.utils.ntof('c3');
+        osc.start(time);
+        osc.stop(time + 0.4);
+      },
+      offCb: function (time, step) {
+        var osc = context.createOscillator();
+        var gain = context.createGain();
+        osc.connect(gain);
+        gain.connect(context.destination);
+        beet.utils.envelope(gain.gain, time, {
+          attack: 0.1,
+          release: 0.2
+        });
+        osc.frequency.value = beet.utils.ntof('e3');
+        osc.start(time);
+        osc.stop(time + 0.4);
+      }
+    }
+  ]
+});
+
 function animate() {
   requestAnimationFrame(animate);
   scene1.render();
   scene2.render();
   scene3.render();
   scene4.render();
+  scene5.render();
 }
 
 animate();
@@ -293,7 +331,7 @@ function addPoints(slots, seq, origin, r) {
   return slots;
 }
 
-function Layer(beet, tempo, index, pulses, slots, radius, cb, length) {
+function Layer(beet, tempo, index, pulses, slots, radius, cb, offCb, length) {
   var self = this;
   var points = [];
   self.tempo = tempo || beet.tempo;
@@ -321,6 +359,7 @@ function Layer(beet, tempo, index, pulses, slots, radius, cb, length) {
   };
 
   var off = function (time, step, drawTime) {
+    offCb(time, step, drawTime);
     setTimeout(function () {
       var current = self.points[step - 1];
       if (current) {
@@ -365,7 +404,7 @@ function Scene(name, options) {
   this.camera.position.z = 500;
 
   options.layers.forEach(function (layer, index) {
-    var l = new Layer(self.beet, layer.tempo, index, layer.pulses, layer.slots, self.r, layer.cb, options.layers.length);
+    var l = new Layer(self.beet, layer.tempo, index, layer.pulses, layer.slots, self.r, layer.cb, layer.offCb || function () {}, options.layers.length);
     self.scene.add(l.circle);
     l.points.forEach(function (point) {
       self.scene.add(point);
@@ -389,6 +428,10 @@ Scene.prototype.render = function () {
   var self = this;
   if (isVisible(this.element)) {
     this.renderer.render(self.scene, self.camera);
+  } else {
+    if (self.started) {
+      self.stop();
+    }
   }
 };
 

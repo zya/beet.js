@@ -155,12 +155,50 @@ var scene4 = new Scene('Multiple Layers', {
   ]
 });
 
+
+var scene5 = new Scene('On/off', {
+  element: document.getElementById('off'),
+  layers: [
+    {
+      pulses: 4,
+      slots: 9,
+      cb: function (time, step) {
+        var osc = context.createOscillator();
+        var gain = context.createGain();
+        osc.connect(gain);
+        gain.connect(context.destination);
+        beet.utils.envelope(gain.gain, time, {
+          attack: 0.1,
+          release: 0.2
+        });
+        osc.frequency.value = beet.utils.ntof('c3');
+        osc.start(time);
+        osc.stop(time + 0.4);
+      },
+      offCb: function (time, step) {
+        var osc = context.createOscillator();
+        var gain = context.createGain();
+        osc.connect(gain);
+        gain.connect(context.destination);
+        beet.utils.envelope(gain.gain, time, {
+          attack: 0.1,
+          release: 0.2
+        });
+        osc.frequency.value = beet.utils.ntof('e3');
+        osc.start(time);
+        osc.stop(time + 0.4);
+      }
+    }
+  ]
+});
+
 function animate() {
   requestAnimationFrame(animate);
   scene1.render();
   scene2.render();
   scene3.render();
   scene4.render();
+  scene5.render();
 }
 
 animate();
