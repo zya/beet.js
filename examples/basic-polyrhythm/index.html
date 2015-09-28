@@ -8,11 +8,16 @@
 </body>
 <script type="text/javascript" src="../../build/beet.js"></script>
 <script type="text/javascript">
+  window.AudioContext = window.AudioContext || window.webkitAudioContext;
   var context = new AudioContext();
   var beet = new Beet({
     context: context,
     tempo: 100
   });
+
+  setTimeout(function(){
+    console.log(context.currentTime);
+  }, 1000);
 
   var fours = beet.pattern(4);
   var threes = beet.pattern(3);
