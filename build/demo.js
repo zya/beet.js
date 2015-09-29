@@ -4,7 +4,11 @@ var prism = require('prismjs');
 
 var Scene = require('./lib/demo/scene');
 var Beet = require('./index');
+var Sound = require('./lib/demo/sound');
 var context = require('./lib/demo/context');
+var gain = context.createGain();
+gain.gain.value = 0.4;
+gain.connect(context.destination);
 
 var beet = new Beet({
   context: context
@@ -17,17 +21,19 @@ var scene1 = new Scene('Euclidean 5/9', {
       pulses: 5,
       slots: 9,
       cb: function (time, step) {
-        var osc = context.createOscillator();
-        var gain = context.createGain();
-        osc.connect(gain);
-        gain.connect(context.destination);
-        beet.utils.envelope(gain.gain, time, {
-          attack: 0.1,
-          release: 0.2
+        var sound = new Sound({
+          context: context,
+          beet: beet,
+          destination: gain
         });
-        osc.frequency.value = beet.utils.ntof('c3');
-        osc.start(time);
-        osc.stop(time + 0.4);
+
+        sound.start(time, step, {
+          notes: ['g4', 'g4', 'g4', 'g4', 'g4', 'g4', 'g4', 'g4', 'g4'],
+          a: 0.01,
+          d: 0.01,
+          s: 0.3,
+          r: 0.3
+        });
       }
     }
   ]
@@ -40,17 +46,19 @@ var scene2 = new Scene('Euclidean 9/13', {
       pulses: 9,
       slots: 13,
       cb: function (time, step) {
-        var osc = context.createOscillator();
-        var gain = context.createGain();
-        osc.connect(gain);
-        gain.connect(context.destination);
-        beet.utils.envelope(gain.gain, time, {
-          attack: 0.1,
-          release: 0.2
+        var sound = new Sound({
+          context: context,
+          beet: beet,
+          destination: gain
         });
-        osc.frequency.value = beet.utils.ntof('c3');
-        osc.start(time);
-        osc.stop(time + 0.4);
+        //1011011011011
+        sound.start(time, step, {
+          notes: ['e4', '_', 'g#4', 'b4', '_', 'g#4', 'b4', '_', 'g#4', 'b4', '_', 'g#4', 'b4'],
+          a: 0.04,
+          d: 0.01,
+          s: 0.3,
+          r: 0.25
+        });
       }
     }
   ]
@@ -63,34 +71,36 @@ var scene3 = new Scene('Poly 5 4', {
       pulses: 4,
       slots: 4,
       cb: function (time, step) {
-        var osc = context.createOscillator();
-        var gain = context.createGain();
-        osc.connect(gain);
-        gain.connect(context.destination);
-        beet.utils.envelope(gain.gain, time, {
-          attack: 0.1,
-          release: 0.2
+        var sound = new Sound({
+          context: context,
+          beet: beet,
+          destination: gain
         });
-        osc.frequency.value = beet.utils.ntof('c3');
-        osc.start(time);
-        osc.stop(time + 0.4);
+        sound.start(time, step, {
+          notes: ['e4', 'd#4', 'g#4', 'b4'],
+          a: 0.04,
+          d: 0.01,
+          s: 0.3,
+          r: 0.5
+        });
       }
     },
     {
       pulses: 5,
       slots: 5,
       cb: function (time, step) {
-        var osc = context.createOscillator();
-        var gain = context.createGain();
-        osc.connect(gain);
-        gain.connect(context.destination);
-        beet.utils.envelope(gain.gain, time, {
-          attack: 0.1,
-          release: 0.2
+        var sound = new Sound({
+          context: context,
+          beet: beet,
+          destination: gain
         });
-        osc.frequency.value = beet.utils.ntof('f3');
-        osc.start(time);
-        osc.stop(time + 0.4);
+        sound.start(time, step, {
+          notes: ['e3', 'd#3', 'g#3', 'b3', 'g#3'],
+          a: 0.04,
+          d: 0.01,
+          s: 0.3,
+          r: 0.6
+        });
       }
     }
   ]
@@ -104,17 +114,19 @@ var scene4 = new Scene('Multiple Layers', {
       slots: 8,
       tempo: 120,
       cb: function (time, step) {
-        var osc = context.createOscillator();
-        var gain = context.createGain();
-        osc.connect(gain);
-        gain.connect(context.destination);
-        beet.utils.envelope(gain.gain, time, {
-          attack: 0.1,
-          release: 0.2
+        var sound = new Sound({
+          context: context,
+          beet: beet,
+          destination: gain
         });
-        osc.frequency.value = beet.utils.ntof('c3');
-        osc.start(time);
-        osc.stop(time + 0.4);
+        sound.start(time, step, {
+          //101010100
+          notes: ['a1', '_', 'a1', '_', 'a1', '_', 'a1', '_'],
+          a: 0.01,
+          d: 0.00,
+          s: 0.9,
+          r: 0.2
+        });
       }
     },
     {
@@ -122,17 +134,19 @@ var scene4 = new Scene('Multiple Layers', {
       slots: 8,
       tempo: 60,
       cb: function (time, step) {
-        var osc = context.createOscillator();
-        var gain = context.createGain();
-        osc.connect(gain);
-        gain.connect(context.destination);
-        beet.utils.envelope(gain.gain, time, {
-          attack: 0.1,
-          release: 0.2
+        var sound = new Sound({
+          context: context,
+          beet: beet,
+          destination: gain
         });
-        osc.frequency.value = beet.utils.ntof('f3');
-        osc.start(time);
-        osc.stop(time + 0.4);
+        sound.start(time, step, {
+          //10100100
+          notes: ['f4', '_', 'g#4', '_', '_', 'c4'],
+          a: 1,
+          d: 0.01,
+          s: 0.2,
+          r: 1
+        });
       }
     },
     {
@@ -140,17 +154,19 @@ var scene4 = new Scene('Multiple Layers', {
       slots: 4,
       tempo: 120 / 3,
       cb: function (time, step) {
-        var osc = context.createOscillator();
-        var gain = context.createGain();
-        osc.connect(gain);
-        gain.connect(context.destination);
-        beet.utils.envelope(gain.gain, time, {
-          attack: 0.1,
-          release: 0.2
+        var sound = new Sound({
+          context: context,
+          beet: beet,
+          destination: gain
         });
-        osc.frequency.value = beet.utils.ntof('a0');
-        osc.start(time);
-        osc.stop(time + 0.4);
+        sound.start(time, step, {
+          //101010100
+          notes: ['c3', 'd#3', 'g3', 'd#3'],
+          a: 0.6,
+          d: 0.00,
+          s: 0.9,
+          r: 1.2
+        });
       }
     }
   ]
@@ -164,30 +180,34 @@ var scene5 = new Scene('On/off', {
       pulses: 4,
       slots: 9,
       cb: function (time, step) {
-        var osc = context.createOscillator();
-        var gain = context.createGain();
-        osc.connect(gain);
-        gain.connect(context.destination);
-        beet.utils.envelope(gain.gain, time, {
-          attack: 0.1,
-          release: 0.2
+        var sound = new Sound({
+          context: context,
+          beet: beet,
+          destination: gain
         });
-        osc.frequency.value = beet.utils.ntof('c3');
-        osc.start(time);
-        osc.stop(time + 0.4);
+        sound.start(time, step, {
+          //101010100
+          notes: ['c4', '_', 'd#4', '_', 'g4', '_', 'd#4'],
+          a: 0.04,
+          d: 0.01,
+          s: 0.3,
+          r: 0.6
+        });
       },
       offCb: function (time, step) {
-        var osc = context.createOscillator();
-        var gain = context.createGain();
-        osc.connect(gain);
-        gain.connect(context.destination);
-        beet.utils.envelope(gain.gain, time, {
-          attack: 0.1,
-          release: 0.2
+        var sound = new Sound({
+          context: context,
+          beet: beet,
+          destination: gain
         });
-        osc.frequency.value = beet.utils.ntof('e3');
-        osc.start(time);
-        osc.stop(time + 0.4);
+        sound.start(time, step, {
+          //101010100
+          notes: ['_', 'f3', '_', 'g#3', '', 'c3', '_', 'f3', 'g#3'],
+          a: 0.04,
+          d: 0.01,
+          s: 0.3,
+          r: 0.6
+        });
       }
     }
   ]
@@ -203,7 +223,7 @@ function animate() {
 }
 
 animate();
-},{"./index":2,"./lib/demo/context":4,"./lib/demo/scene":6,"dat-gui":13,"prismjs":16}],2:[function(require,module,exports){
+},{"./index":2,"./lib/demo/context":4,"./lib/demo/scene":6,"./lib/demo/sound":7,"dat-gui":14,"prismjs":17}],2:[function(require,module,exports){
 module.exports = require('./lib/beet');
 },{"./lib/beet":3}],3:[function(require,module,exports){
 var watch = require('watchjs').watch;
@@ -289,7 +309,7 @@ Beet.prototype._change_tempo = function (value) {
 
 window.Beet = Beet;
 module.exports = Beet;
-},{"./layer":7,"./pattern":8,"./utils":9,"watchjs":23}],4:[function(require,module,exports){
+},{"./layer":8,"./pattern":9,"./utils":10,"watchjs":24}],4:[function(require,module,exports){
 window.AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext || window.oAudioContext;
 var context = new AudioContext();
 module.exports = context;
@@ -377,7 +397,7 @@ function Layer(beet, tempo, index, pulses, slots, radius, cb, offCb, length) {
 }
 
 module.exports = Layer;
-},{"three":17}],6:[function(require,module,exports){
+},{"three":18}],6:[function(require,module,exports){
 var THREE = require('three');
 var Layer = require('./layer');
 var context = require('./context');
@@ -473,7 +493,37 @@ Scene.prototype._addEventListeners = function () {
   });
 };
 module.exports = Scene;
-},{"./context":4,"./layer":5,"bowser":12,"three":17,"verge":18}],7:[function(require,module,exports){
+},{"./context":4,"./layer":5,"bowser":13,"three":18,"verge":19}],7:[function(require,module,exports){
+function Sound(options) {
+  this.context = options.context;
+  this.beet = options.beet;
+  this.destination = options.destination;
+}
+
+Sound.prototype.start = function (time, step, options) {
+  var self = this;
+  var osc = self.context.createOscillator();
+  var gain = self.context.createGain();
+
+  osc.connect(gain);
+  gain.connect(self.destination);
+  var note = self.beet.utils.ntof(options.notes[step - 1]);
+  osc.frequency.value = note;
+
+  self.beet.utils.envelope(gain.gain, time, {
+    start: 0.0,
+    peak: 0.8,
+    attack: options.a,
+    release: options.r,
+    decay: options.d,
+    sustain: options.s
+  });
+  osc.start(time);
+  osc.stop(time + options.a + options.d + options.r + 0.5);
+};
+
+module.exports = Sound;
+},{}],8:[function(require,module,exports){
 var Metro = require('wa-metro');
 var watch = require('watchjs').watch;
 
@@ -518,7 +568,7 @@ Layer.prototype.stop = function () {
 };
 
 module.exports = Layer;
-},{"wa-metro":19,"watchjs":23}],8:[function(require,module,exports){
+},{"wa-metro":20,"watchjs":24}],9:[function(require,module,exports){
 var bjork = require('bjorklund');
 var watch = require('watchjs').watch;
 
@@ -554,7 +604,7 @@ Pattern.prototype.shift = function (offset) {
 };
 
 module.exports = Pattern;
-},{"bjorklund":10,"watchjs":23}],9:[function(require,module,exports){
+},{"bjorklund":11,"watchjs":24}],10:[function(require,module,exports){
 var notes = {
   "c": 0,
   "c#": 1,
@@ -618,7 +668,7 @@ module.exports.mtop = function mtop(midi_note) {
   return Math.pow(2, (midi_note - 60) / 12);
 };
 module.exports.mtof = mtof;
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 var _ = require('lodash');
 
 module.exports = function bjorklund(pulses, length) {
@@ -660,7 +710,7 @@ function generate_zero_based(ones, zeros) {
     return ones.reverse().join().replace(/,/g, '');
   }
 }
-},{"lodash":11}],11:[function(require,module,exports){
+},{"lodash":12}],12:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -12866,7 +12916,7 @@ function generate_zero_based(ones, zeros) {
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 /*!
   * Bowser - a browser detector
   * https://github.com/ded/bowser
@@ -13159,10 +13209,10 @@ function generate_zero_based(ones, zeros) {
   return bowser
 });
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 module.exports = require('./vendor/dat.gui')
 module.exports.color = require('./vendor/dat.color')
-},{"./vendor/dat.color":14,"./vendor/dat.gui":15}],14:[function(require,module,exports){
+},{"./vendor/dat.color":15,"./vendor/dat.gui":16}],15:[function(require,module,exports){
 /**
  * dat-gui JavaScript Controller Library
  * http://code.google.com/p/dat-gui
@@ -13918,7 +13968,7 @@ dat.color.math = (function () {
 })(),
 dat.color.toString,
 dat.utils.common);
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 /**
  * dat-gui JavaScript Controller Library
  * http://code.google.com/p/dat-gui
@@ -17579,7 +17629,7 @@ dat.dom.CenteredDiv = (function (dom, common) {
 dat.utils.common),
 dat.dom.dom,
 dat.utils.common);
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 
 /* **********************************************
      Begin prism-core.js
@@ -18286,7 +18336,7 @@ if (Prism.languages.markup) {
 
 })();
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 var self = self || {};// File:src/Three.js
 
 /**
@@ -54271,7 +54321,7 @@ if (typeof exports !== 'undefined') {
   this['THREE'] = THREE;
 }
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 /*!
  * verge 1.9.1+201402130803
  * https://github.com/ryanve/verge
@@ -54433,9 +54483,9 @@ if (typeof exports !== 'undefined') {
 
   return xports;
 }));
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 module.exports = require('./lib/wa-metro');
-},{"./lib/wa-metro":20}],20:[function(require,module,exports){
+},{"./lib/wa-metro":21}],21:[function(require,module,exports){
 var work = require('webworkify');
 
 function Metro(context, callback) {
@@ -54516,7 +54566,7 @@ Metro.prototype._next = function _next() {
 
 module.exports = Metro;
 window.Metro = Metro;
-},{"./worker.js":21,"webworkify":22}],21:[function(require,module,exports){
+},{"./worker.js":22,"webworkify":23}],22:[function(require,module,exports){
 module.exports = function (self) {
   var interval = 25;
   var timer = null;
@@ -54536,7 +54586,7 @@ module.exports = function (self) {
     }
   };
 };
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 var bundleFn = arguments[3];
 var sources = arguments[4];
 var cache = arguments[5];
@@ -54593,7 +54643,7 @@ module.exports = function (fn) {
     ));
 };
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 /**
  * DEVELOPED BY
  * GIL LOPES BUENO

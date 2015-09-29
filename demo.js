@@ -3,7 +3,11 @@ var prism = require('prismjs');
 
 var Scene = require('./lib/demo/scene');
 var Beet = require('./index');
+var Sound = require('./lib/demo/sound');
 var context = require('./lib/demo/context');
+var gain = context.createGain();
+gain.gain.value = 0.4;
+gain.connect(context.destination);
 
 var beet = new Beet({
   context: context
@@ -16,17 +20,19 @@ var scene1 = new Scene('Euclidean 5/9', {
       pulses: 5,
       slots: 9,
       cb: function (time, step) {
-        var osc = context.createOscillator();
-        var gain = context.createGain();
-        osc.connect(gain);
-        gain.connect(context.destination);
-        beet.utils.envelope(gain.gain, time, {
-          attack: 0.1,
-          release: 0.2
+        var sound = new Sound({
+          context: context,
+          beet: beet,
+          destination: gain
         });
-        osc.frequency.value = beet.utils.ntof('c3');
-        osc.start(time);
-        osc.stop(time + 0.4);
+
+        sound.start(time, step, {
+          notes: ['g4', 'g4', 'g4', 'g4', 'g4', 'g4', 'g4', 'g4', 'g4'],
+          a: 0.01,
+          d: 0.01,
+          s: 0.3,
+          r: 0.3
+        });
       }
     }
   ]
@@ -39,17 +45,19 @@ var scene2 = new Scene('Euclidean 9/13', {
       pulses: 9,
       slots: 13,
       cb: function (time, step) {
-        var osc = context.createOscillator();
-        var gain = context.createGain();
-        osc.connect(gain);
-        gain.connect(context.destination);
-        beet.utils.envelope(gain.gain, time, {
-          attack: 0.1,
-          release: 0.2
+        var sound = new Sound({
+          context: context,
+          beet: beet,
+          destination: gain
         });
-        osc.frequency.value = beet.utils.ntof('c3');
-        osc.start(time);
-        osc.stop(time + 0.4);
+        //1011011011011
+        sound.start(time, step, {
+          notes: ['e4', '_', 'g#4', 'b4', '_', 'g#4', 'b4', '_', 'g#4', 'b4', '_', 'g#4', 'b4'],
+          a: 0.04,
+          d: 0.01,
+          s: 0.3,
+          r: 0.25
+        });
       }
     }
   ]
@@ -62,34 +70,36 @@ var scene3 = new Scene('Poly 5 4', {
       pulses: 4,
       slots: 4,
       cb: function (time, step) {
-        var osc = context.createOscillator();
-        var gain = context.createGain();
-        osc.connect(gain);
-        gain.connect(context.destination);
-        beet.utils.envelope(gain.gain, time, {
-          attack: 0.1,
-          release: 0.2
+        var sound = new Sound({
+          context: context,
+          beet: beet,
+          destination: gain
         });
-        osc.frequency.value = beet.utils.ntof('c3');
-        osc.start(time);
-        osc.stop(time + 0.4);
+        sound.start(time, step, {
+          notes: ['e4', 'd#4', 'g#4', 'b4'],
+          a: 0.04,
+          d: 0.01,
+          s: 0.3,
+          r: 0.5
+        });
       }
     },
     {
       pulses: 5,
       slots: 5,
       cb: function (time, step) {
-        var osc = context.createOscillator();
-        var gain = context.createGain();
-        osc.connect(gain);
-        gain.connect(context.destination);
-        beet.utils.envelope(gain.gain, time, {
-          attack: 0.1,
-          release: 0.2
+        var sound = new Sound({
+          context: context,
+          beet: beet,
+          destination: gain
         });
-        osc.frequency.value = beet.utils.ntof('f3');
-        osc.start(time);
-        osc.stop(time + 0.4);
+        sound.start(time, step, {
+          notes: ['e3', 'd#3', 'g#3', 'b3', 'g#3'],
+          a: 0.04,
+          d: 0.01,
+          s: 0.3,
+          r: 0.6
+        });
       }
     }
   ]
@@ -103,17 +113,19 @@ var scene4 = new Scene('Multiple Layers', {
       slots: 8,
       tempo: 120,
       cb: function (time, step) {
-        var osc = context.createOscillator();
-        var gain = context.createGain();
-        osc.connect(gain);
-        gain.connect(context.destination);
-        beet.utils.envelope(gain.gain, time, {
-          attack: 0.1,
-          release: 0.2
+        var sound = new Sound({
+          context: context,
+          beet: beet,
+          destination: gain
         });
-        osc.frequency.value = beet.utils.ntof('c3');
-        osc.start(time);
-        osc.stop(time + 0.4);
+        sound.start(time, step, {
+          //101010100
+          notes: ['a1', '_', 'a1', '_', 'a1', '_', 'a1', '_'],
+          a: 0.01,
+          d: 0.00,
+          s: 0.9,
+          r: 0.2
+        });
       }
     },
     {
@@ -121,17 +133,19 @@ var scene4 = new Scene('Multiple Layers', {
       slots: 8,
       tempo: 60,
       cb: function (time, step) {
-        var osc = context.createOscillator();
-        var gain = context.createGain();
-        osc.connect(gain);
-        gain.connect(context.destination);
-        beet.utils.envelope(gain.gain, time, {
-          attack: 0.1,
-          release: 0.2
+        var sound = new Sound({
+          context: context,
+          beet: beet,
+          destination: gain
         });
-        osc.frequency.value = beet.utils.ntof('f3');
-        osc.start(time);
-        osc.stop(time + 0.4);
+        sound.start(time, step, {
+          //10100100
+          notes: ['f4', '_', 'g#4', '_', '_', 'c4'],
+          a: 1,
+          d: 0.01,
+          s: 0.2,
+          r: 1
+        });
       }
     },
     {
@@ -139,17 +153,19 @@ var scene4 = new Scene('Multiple Layers', {
       slots: 4,
       tempo: 120 / 3,
       cb: function (time, step) {
-        var osc = context.createOscillator();
-        var gain = context.createGain();
-        osc.connect(gain);
-        gain.connect(context.destination);
-        beet.utils.envelope(gain.gain, time, {
-          attack: 0.1,
-          release: 0.2
+        var sound = new Sound({
+          context: context,
+          beet: beet,
+          destination: gain
         });
-        osc.frequency.value = beet.utils.ntof('a0');
-        osc.start(time);
-        osc.stop(time + 0.4);
+        sound.start(time, step, {
+          //101010100
+          notes: ['c3', 'd#3', 'g3', 'd#3'],
+          a: 0.6,
+          d: 0.00,
+          s: 0.9,
+          r: 1.2
+        });
       }
     }
   ]
@@ -163,30 +179,34 @@ var scene5 = new Scene('On/off', {
       pulses: 4,
       slots: 9,
       cb: function (time, step) {
-        var osc = context.createOscillator();
-        var gain = context.createGain();
-        osc.connect(gain);
-        gain.connect(context.destination);
-        beet.utils.envelope(gain.gain, time, {
-          attack: 0.1,
-          release: 0.2
+        var sound = new Sound({
+          context: context,
+          beet: beet,
+          destination: gain
         });
-        osc.frequency.value = beet.utils.ntof('c3');
-        osc.start(time);
-        osc.stop(time + 0.4);
+        sound.start(time, step, {
+          //101010100
+          notes: ['c4', '_', 'd#4', '_', 'g4', '_', 'd#4'],
+          a: 0.04,
+          d: 0.01,
+          s: 0.3,
+          r: 0.6
+        });
       },
       offCb: function (time, step) {
-        var osc = context.createOscillator();
-        var gain = context.createGain();
-        osc.connect(gain);
-        gain.connect(context.destination);
-        beet.utils.envelope(gain.gain, time, {
-          attack: 0.1,
-          release: 0.2
+        var sound = new Sound({
+          context: context,
+          beet: beet,
+          destination: gain
         });
-        osc.frequency.value = beet.utils.ntof('e3');
-        osc.start(time);
-        osc.stop(time + 0.4);
+        sound.start(time, step, {
+          //101010100
+          notes: ['_', 'f3', '_', 'g#3', '', 'c3', '_', 'f3', 'g#3'],
+          a: 0.04,
+          d: 0.01,
+          s: 0.3,
+          r: 0.6
+        });
       }
     }
   ]
