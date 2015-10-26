@@ -4,13 +4,17 @@
   "description": "Polyrhythmic Sequencer for Web Audio API",
   "main": "index.js",
   "scripts": {
-    "build": "browserify index.js > build/beet.js; browserify index.js | uglifyjs > build/beet.min.js",
-    "watch": "watchify index.js -o build/beet.js",
-    "demo-watch": "watchify demo.js -o build/demo.js",
+    "build": "browserify index.js --standalone Beet > build/beet.js; browserify index.js --standalone Beet | uglifyjs > build/beet.min.js",
+    "watch": "watchify index.js --standalone Beet -o build/beet.js",
+    "demo-watch": "watchify demo.js --standalone Beet -o build/demo.js",
     "test": "mocha"
   },
   "author": "zya",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zya/beet.js"
+  },
   "dependencies": {
     "bjorklund": "^1.0.3",
     "bowser": "^1.0.0",
@@ -18,7 +22,7 @@
     "prismjs": "prismjs/prism",
     "three": "^0.72.0",
     "verge": "^1.9.1",
-    "wa-metro": "^1.0.5",
+    "wa-metro": "^1.1.1",
     "watchjs": "0.0.0"
   },
   "devDependencies": {
