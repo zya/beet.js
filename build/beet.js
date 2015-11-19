@@ -84,7 +84,7 @@ Beet.prototype._change_tempo = function(value) {
 
 module.exports = Beet;
 
-},{"./layer":3,"./pattern":4,"./utils":5,"watchjs":12}],3:[function(require,module,exports){
+},{"./layer":3,"./pattern":4,"./utils":5,"watchjs":11}],3:[function(require,module,exports){
 var Metro = require('wa-metro');
 var watch = require('watchjs').watch;
 
@@ -129,7 +129,7 @@ Layer.prototype.stop = function () {
 };
 
 module.exports = Layer;
-},{"wa-metro":8,"watchjs":12}],4:[function(require,module,exports){
+},{"wa-metro":8,"watchjs":11}],4:[function(require,module,exports){
 var bjork = require('bjorklund');
 var watch = require('watchjs').watch;
 
@@ -165,7 +165,7 @@ Pattern.prototype.shift = function (offset) {
 };
 
 module.exports = Pattern;
-},{"bjorklund":6,"watchjs":12}],5:[function(require,module,exports){
+},{"bjorklund":6,"watchjs":11}],5:[function(require,module,exports){
 var notes = {
   "c": 0,
   "c#": 1,
@@ -12652,7 +12652,7 @@ function Metro(context, callback) {
   this._worker = work(require('./worker.js'));
 
   this._worker.onmessage = function(event) {
-    if (event.data === 'tick') {
+    if (event.data === 'tick' && self._is_running) {
       self._scheduler();
     }
   };
@@ -12678,6 +12678,7 @@ Metro.prototype.pause = function() {
 
 Metro.prototype.stop = function() {
   this._first = true;
+  this._step = 1;
   this._is_running = false;
   this._worker.postMessage('stop');
 };
@@ -12708,7 +12709,7 @@ Metro.prototype._next = function _next() {
 
 module.exports = Metro;
 
-},{"./worker.js":10,"webworkify":11}],10:[function(require,module,exports){
+},{"./worker.js":10,"webworkify":12}],10:[function(require,module,exports){
 module.exports = function (self) {
   var interval = 25;
   var timer = null;
@@ -12729,63 +12730,6 @@ module.exports = function (self) {
   };
 };
 },{}],11:[function(require,module,exports){
-var bundleFn = arguments[3];
-var sources = arguments[4];
-var cache = arguments[5];
-
-var stringify = JSON.stringify;
-
-module.exports = function (fn) {
-    var keys = [];
-    var wkey;
-    var cacheKeys = Object.keys(cache);
-    
-    for (var i = 0, l = cacheKeys.length; i < l; i++) {
-        var key = cacheKeys[i];
-        if (cache[key].exports === fn) {
-            wkey = key;
-            break;
-        }
-    }
-    
-    if (!wkey) {
-        wkey = Math.floor(Math.pow(16, 8) * Math.random()).toString(16);
-        var wcache = {};
-        for (var i = 0, l = cacheKeys.length; i < l; i++) {
-            var key = cacheKeys[i];
-            wcache[key] = key;
-        }
-        sources[wkey] = [
-            Function(['require','module','exports'], '(' + fn + ')(self)'),
-            wcache
-        ];
-    }
-    var skey = Math.floor(Math.pow(16, 8) * Math.random()).toString(16);
-    
-    var scache = {}; scache[wkey] = wkey;
-    sources[skey] = [
-        Function(['require'],'require(' + stringify(wkey) + ')(self)'),
-        scache
-    ];
-    
-    var src = '(' + bundleFn + ')({'
-        + Object.keys(sources).map(function (key) {
-            return stringify(key) + ':['
-                + sources[key][0]
-                + ',' + stringify(sources[key][1]) + ']'
-            ;
-        }).join(',')
-        + '},{},[' + stringify(skey) + '])'
-    ;
-    
-    var URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
-    
-    return new Worker(URL.createObjectURL(
-        new Blob([src], { type: 'text/javascript' })
-    ));
-};
-
-},{}],12:[function(require,module,exports){
 /**
  * DEVELOPED BY
  * GIL LOPES BUENO
@@ -13137,6 +13081,63 @@ module.exports = function (fn) {
     return WatchJS;
 
 }));
+
+},{}],12:[function(require,module,exports){
+var bundleFn = arguments[3];
+var sources = arguments[4];
+var cache = arguments[5];
+
+var stringify = JSON.stringify;
+
+module.exports = function (fn) {
+    var keys = [];
+    var wkey;
+    var cacheKeys = Object.keys(cache);
+    
+    for (var i = 0, l = cacheKeys.length; i < l; i++) {
+        var key = cacheKeys[i];
+        if (cache[key].exports === fn) {
+            wkey = key;
+            break;
+        }
+    }
+    
+    if (!wkey) {
+        wkey = Math.floor(Math.pow(16, 8) * Math.random()).toString(16);
+        var wcache = {};
+        for (var i = 0, l = cacheKeys.length; i < l; i++) {
+            var key = cacheKeys[i];
+            wcache[key] = key;
+        }
+        sources[wkey] = [
+            Function(['require','module','exports'], '(' + fn + ')(self)'),
+            wcache
+        ];
+    }
+    var skey = Math.floor(Math.pow(16, 8) * Math.random()).toString(16);
+    
+    var scache = {}; scache[wkey] = wkey;
+    sources[skey] = [
+        Function(['require'],'require(' + stringify(wkey) + ')(self)'),
+        scache
+    ];
+    
+    var src = '(' + bundleFn + ')({'
+        + Object.keys(sources).map(function (key) {
+            return stringify(key) + ':['
+                + sources[key][0]
+                + ',' + stringify(sources[key][1]) + ']'
+            ;
+        }).join(',')
+        + '},{},[' + stringify(skey) + '])'
+    ;
+    
+    var URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
+    
+    return new Worker(URL.createObjectURL(
+        new Blob([src], { type: 'text/javascript' })
+    ));
+};
 
 },{}]},{},[1])(1)
 });

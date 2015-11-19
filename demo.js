@@ -19,7 +19,7 @@ var scene1 = new Scene('Euclidean 5/9', {
     {
       pulses: 5,
       slots: 9,
-      cb: function (time, step) {
+      cb: function(time, step) {
         var sound = new Sound({
           context: context,
           beet: beet,
@@ -44,7 +44,7 @@ var scene2 = new Scene('Euclidean 9/13', {
     {
       pulses: 9,
       slots: 13,
-      cb: function (time, step) {
+      cb: function(time, step) {
         var sound = new Sound({
           context: context,
           beet: beet,
@@ -69,7 +69,7 @@ var scene3 = new Scene('Poly 5 4', {
     {
       pulses: 4,
       slots: 4,
-      cb: function (time, step) {
+      cb: function(time, step) {
         var sound = new Sound({
           context: context,
           beet: beet,
@@ -87,7 +87,7 @@ var scene3 = new Scene('Poly 5 4', {
     {
       pulses: 5,
       slots: 5,
-      cb: function (time, step) {
+      cb: function(time, step) {
         var sound = new Sound({
           context: context,
           beet: beet,
@@ -112,7 +112,7 @@ var scene4 = new Scene('Multiple Layers', {
       pulses: 4,
       slots: 8,
       tempo: 120,
-      cb: function (time, step) {
+      cb: function(time, step) {
         var sound = new Sound({
           context: context,
           beet: beet,
@@ -132,7 +132,7 @@ var scene4 = new Scene('Multiple Layers', {
       pulses: 3,
       slots: 8,
       tempo: 60,
-      cb: function (time, step) {
+      cb: function(time, step) {
         var sound = new Sound({
           context: context,
           beet: beet,
@@ -152,7 +152,7 @@ var scene4 = new Scene('Multiple Layers', {
       pulses: 4,
       slots: 4,
       tempo: 120 / 3,
-      cb: function (time, step) {
+      cb: function(time, step) {
         var sound = new Sound({
           context: context,
           beet: beet,
@@ -178,7 +178,7 @@ var scene5 = new Scene('On/off', {
     {
       pulses: 4,
       slots: 9,
-      cb: function (time, step) {
+      cb: function(time, step) {
         var sound = new Sound({
           context: context,
           beet: beet,
@@ -193,7 +193,7 @@ var scene5 = new Scene('On/off', {
           r: 0.6
         });
       },
-      offCb: function (time, step) {
+      offCb: function(time, step) {
         var sound = new Sound({
           context: context,
           beet: beet,
