@@ -1,6 +1,3 @@
-var dat = require('dat-gui');
-var prism = require('prismjs');
-
 var Scene = require('./lib/demo/scene');
 var Beet = require('./index');
 var Sound = require('./lib/demo/sound');
@@ -171,7 +168,6 @@ var scene4 = new Scene('Multiple Layers', {
   ]
 });
 
-
 var scene5 = new Scene('On/off', {
   element: document.getElementById('off'),
   layers: [
@@ -212,6 +208,32 @@ var scene5 = new Scene('On/off', {
   ]
 });
 
+var scene6 = new Scene('Custom Patterns', {
+  element: document.getElementById('custom'),
+  layers: [
+    {
+      pulses: '1000101010',
+      slots: 10,
+      tempo: 120,
+      cb: function(time, step) {
+        var sound = new Sound({
+          context: context,
+          beet: beet,
+          destination: gain
+        });
+        sound.start(time, step, {
+          //1000101010
+          notes: ['f3', '_', '_','_', 'a3', '_', 'g3', '_', 'a3', '_'],
+          a: 0.01,
+          d: 0.00,
+          s: 0.9,
+          r: 0.2
+        });
+      }
+    }
+  ]
+});
+
 function animate() {
   requestAnimationFrame(animate);
   scene1.render();
@@ -219,6 +241,7 @@ function animate() {
   scene3.render();
   scene4.render();
   scene5.render();
+  scene6.render();
 }
 
 animate();

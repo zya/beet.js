@@ -2,10 +2,36 @@ var assert = require('chai').assert;
 var Pattern = require('../../lib/pattern');
 
 describe('Pattern', function () {
-  describe('constructor', function () {
-    it('uses the the value of pulses for steps if steps is not present', function () {
-      var pattern = new Pattern(4);
-      assert.deepEqual(pattern.seq, ['1', '1', '1', '1']);
+  describe('constructor(pulses|patternString, slots)', function () {
+    describe('whe it is provided with numbers', function () {
+      it('uses the the value of pulses for steps if steps is not present', function () {
+        var pattern = new Pattern(4);
+        assert.deepEqual(pattern.seq, ['1', '1', '1', '1']);
+      });
+    });
+    describe('when it is provided with a string', function () {
+      it('returns a pattern object using the string', function () {
+        var pattern = new Pattern('100100');
+        assert.deepEqual(pattern.seq, ['1', '0', '0', '1', '0', '0']);
+      });
+    });
+  });
+
+  describe('update(pulses|patternString, slots)', function () {
+    describe('whe it is provided with numbers', function () {
+      it('uses the the value of pulses for steps if steps is not present', function () {
+        var pattern = new Pattern(4);
+        pattern.update(1, 4);
+        assert.deepEqual(pattern.seq, ['1', '0', '0', '0']);
+      });
+    });
+
+    describe('when it is provided with a string', function () {
+      it('updates the pattern according to the pattern string', function () {
+        var pattern = new Pattern('100100');
+        pattern.update('1010')
+        assert.deepEqual(pattern.seq, ['1', '0', '1', '0']);
+      });
     });
   });
 
@@ -40,5 +66,4 @@ describe('Pattern', function () {
       assert.deepEqual(seq.seq, ['0', '1', '0', '0']);
     });
   });
-
 });

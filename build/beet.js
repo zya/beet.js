@@ -134,10 +134,9 @@ var bjork = require('bjorklund');
 var watch = require('watchjs').watch;
 
 function Pattern(pulses, steps) {
-  this.pulses = pulses;
-  this.steps = steps || pulses;
-  this.seq = bjork(this.pulses, this.steps).split('');
   var self = this;
+
+  self._createSequence(pulses, steps);
 
   watch(this, ['pulses', 'steps'], function () {
     self.update(this.pulses, this.steps);
@@ -147,8 +146,11 @@ function Pattern(pulses, steps) {
 }
 
 Pattern.prototype.update = function (pulses, steps) {
-  steps = steps || pulses;
-  this.seq = bjork(pulses, steps).split('');
+  var self = this;
+  var typeOfPulses = typeof pulses;
+
+  self._createSequence(pulses, steps);
+
   return this;
 };
 
@@ -164,7 +166,24 @@ Pattern.prototype.shift = function (offset) {
   return this;
 };
 
+Pattern.prototype._createSequence = function (pulses, steps) {
+  var self = this;
+  var typeOfPulses = typeof pulses;
+
+  if (typeOfPulses === 'number') {
+    self.pulses = pulses;
+    self.steps = steps || pulses;
+    self.seq = bjork(self.pulses, self.steps).split('');
+  } else if (typeOfPulses === 'string') {
+    self.steps = pulses.length;
+    self.seq = pulses.split('');
+  }
+
+  return this;
+};
+
 module.exports = Pattern;
+
 },{"bjorklund":6,"watchjs":11}],5:[function(require,module,exports){
 var notes = {
   "c": 0,
@@ -13093,15 +13112,20 @@ module.exports = function (fn) {
     var keys = [];
     var wkey;
     var cacheKeys = Object.keys(cache);
-    
+
     for (var i = 0, l = cacheKeys.length; i < l; i++) {
         var key = cacheKeys[i];
-        if (cache[key].exports === fn) {
+        var exp = cache[key].exports;
+        // Using babel as a transpiler to use esmodule, the export will always
+        // be an object with the default export as a property of it. To ensure
+        // the existing api and babel esmodule exports are both supported we
+        // check for both
+        if (exp === fn || exp.default === fn) {
             wkey = key;
             break;
         }
     }
-    
+
     if (!wkey) {
         wkey = Math.floor(Math.pow(16, 8) * Math.random()).toString(16);
         var wcache = {};
@@ -13115,13 +13139,18 @@ module.exports = function (fn) {
         ];
     }
     var skey = Math.floor(Math.pow(16, 8) * Math.random()).toString(16);
-    
+
     var scache = {}; scache[wkey] = wkey;
     sources[skey] = [
-        Function(['require'],'require(' + stringify(wkey) + ')(self)'),
+        Function(['require'], (
+            // try to call default if defined to also support babel esmodule
+            // exports
+            'var f = require(' + stringify(wkey) + ');' +
+            '(f.default ? f.default : f)(self);'
+        )),
         scache
     ];
-    
+
     var src = '(' + bundleFn + ')({'
         + Object.keys(sources).map(function (key) {
             return stringify(key) + ':['
@@ -13131,9 +13160,9 @@ module.exports = function (fn) {
         }).join(',')
         + '},{},[' + stringify(skey) + '])'
     ;
-    
+
     var URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
-    
+
     return new Worker(URL.createObjectURL(
         new Blob([src], { type: 'text/javascript' })
     ));

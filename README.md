@@ -88,6 +88,7 @@ Removes a given `beet.layer` from the list of layers to play.
 * `layer` (Required) - a `beet.layer` object.
 
 ### Pattern
+The pattern method will return a `pattern` object based on the provided values. If `pulses` and `steps` are passed in as numbers, an equally distributed pattern will be generated and returned. Alternatively, you can use a custom pattern string. For example '1000101010'.
 #### `beet.pattern(pulses, steps)`
 Returns a `pattern` object containing a [bjorklund](https://github.com/zya/bjorklund) sequence with equally distributed number of `pulses` over `steps`.
 
@@ -104,6 +105,18 @@ var pattern = beet.pattern(3, 7);
 var pattern2 = beet.pattern(4);
 // a pattern object with a sequence as below
 // '1111'
+````
+
+#### `beet.pattern(patternString)`
+Returns a `pattern` object containing a the custom pattern. This can be used to generated custom sequences when neccessary.
+
+#### Parameters
+* `patternString` (required) - a binary sequence string with an arbitrary length using `1`'s for pulses and `0`'s for empty slots.
+
+#### example
+````js
+var pattern = beet.pattern('100010010');
+var pattern2 = beet.pattern('10001111');
 ````
 
 #### `.update(pulses, steps)`
@@ -154,7 +167,7 @@ var layer = beet.layer(pattern, on, off);
 #### Callback format
 The callbacks are functions that will be called from the scheduler.
 The functions will be called with `time`, `step` and `timeFromScheduled` parameters.
-You can use the `time` parameter for web audio methods. `step` can be used to change audio behaviour according to the current step. 
+You can use the `time` parameter for web audio methods. `step` can be used to change audio behaviour according to the current step.
 `timeFromScheduled` is a value in seconds which corresponds to the time it will take for an audio event to occur from the time it was scheduled (`time - context.currentTime`). It can be used to schedule JS events using `setTimeout`.
 
 #### example

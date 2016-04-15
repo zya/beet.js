@@ -121,6 +121,24 @@ beet.add(layer).start();
 </code></pre>
   </div>
 </section>
+<hr>
+<section class='example' id='custom'>
+  <h1 class='text'>Custom String Patterns</h1>
+  <i class="fa fa-play icon" id="play"></i><br>
+  <p class='text tips'>a pattern can be genrated by passing a custom string instead of numbers</p>
+  <div class="code-container">
+  <pre class="language-javascript"><code>
+var Beet = require('beet.js');
+var context = new AudioContext();
+var beet = new Beet({
+  context: context
+});
+var pattern = beet.pattern('1000101010');
+var layer = beet.layer(pattern, callbackOn);
+beet.add(layer).start();
+</code></pre>
+  </div>
+</section>
 <br><br>
 </body>
 <script type="text/javascript" src="build/demo.js"></script>
