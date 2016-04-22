@@ -73,9 +73,9 @@ Pauses the sequencer after a given time in seconds but keeps the current step nu
 #### Parameters
 * `time` (optional) - a number in seconds - defaults to 0
 
-#### `beet.add(layer)`
+#### `beet.add(layer(s))`
 
-Adds a given `beet.layer` to the list of layers to play.
+Adds a given `beet.layer` to the list of layers to play. Can also be used with multiple layers. `beet.add(layer1, layer2)`
 
 #### Parameters
 * `layer` (Required) - a `beet.layer` object.
