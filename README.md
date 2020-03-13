@@ -186,6 +186,16 @@ function callback (time, step, timeFromScheduled) {
 }
 ````
 
+#### Play/Pause/Stop layers
+You can play and pause individual layers using:
+````js
+var pattern = beet.pattern(1, 4); // returns '1000'
+var layer = beet.layer(pattern, on, off);
+layer.play()
+layer.pause()
+layer.stop()
+````
+
 ### Utils
 Beet comes with a series of useful utilities for web audio api. These might me moved to a separate module in the future as these are not specific to beet's functionality. But for now, features will be added gradually.
 
@@ -223,17 +233,18 @@ osc.start(time);
 osc.stop(time + 2);
 ````
 
-#### `.load(path, success, failure)`
+#### `.load(context, path, success, failure)`
 Loads an audio file for a given path and returns a decoded [AudioBuffer](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer) object.
 
 #### Parameters
+* `context` (requred) - an instance of AudioContext
 * `path` (required) - the path to your audio file.
 * `success` (required) - function to be called on load success. The passed function will be called with a `buffer` parameters which is an AudioBuffer object.
 * `failure` (required) - function to be called on load or decode error.
 
 #### example
 ````js
-beet.utils.load('path/to/file.wav', function(buffer){
+beet.utils.load(context, 'path/to/file.wav', function(buffer){
   // do something with the buffer
 });
 ````
