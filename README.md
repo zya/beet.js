@@ -233,20 +233,20 @@ osc.start(time);
 osc.stop(time + 2);
 ````
 
-#### `.load(context, path, success, failure)`
+#### `.load(path, success, failure, context)`
 Loads an audio file for a given path and returns a decoded [AudioBuffer](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer) object.
 
 #### Parameters
-* `context` (requred) - an instance of AudioContext
 * `path` (required) - the path to your audio file.
 * `success` (required) - function to be called on load success. The passed function will be called with a `buffer` parameters which is an AudioBuffer object.
 * `failure` (required) - function to be called on load or decode error.
+* `context` (optional) - an instance of AudioContext, if not provided, global variable `context` will be used
 
 #### example
 ````js
-beet.utils.load(context, 'path/to/file.wav', function(buffer){
+beet.utils.load('path/to/file.wav', function(buffer){
   // do something with the buffer
-});
+}, failureHandler, context);
 ````
 
 #### `.mtof(midi_note)`
