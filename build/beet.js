@@ -220,7 +220,6 @@ var notes = {
 };
 
 function mtof(midi_note) {
-  console.log();
   return Math.pow(2, (midi_note - 69) / 12) * 440;
 }
 
@@ -240,12 +239,13 @@ module.exports.envelope = function (audioParam, now, opts) {
   audioParam.linearRampToValueAtTime(0, now + attack + decay + release);
 };
 
-module.exports.load = function (path, success, failure) {
+module.exports.load = function(path, success, failure, providedContext) {
   var request = new XMLHttpRequest();
-  request.open('GET', path, true);
-  request.responseType = 'arraybuffer';
-  request.onload = function () {
-    context.decodeAudioData(request.response, success, failure);
+  var audioContext = providedContext ? providedContext : context;
+  request.open("GET", path, true);
+  request.responseType = "arraybuffer";
+  request.onload = function() {
+    audioContext.decodeAudioData(request.response, success, failure);
   };
   request.onerror = failure;
   request.send();
@@ -13122,8 +13122,7 @@ var cache = arguments[5];
 
 var stringify = JSON.stringify;
 
-module.exports = function (fn) {
-    var keys = [];
+module.exports = function (fn, options) {
     var wkey;
     var cacheKeys = Object.keys(cache);
 
@@ -13134,7 +13133,7 @@ module.exports = function (fn) {
         // be an object with the default export as a property of it. To ensure
         // the existing api and babel esmodule exports are both supported we
         // check for both
-        if (exp === fn || exp.default === fn) {
+        if (exp === fn || exp && exp.default === fn) {
             wkey = key;
             break;
         }
@@ -13148,7 +13147,7 @@ module.exports = function (fn) {
             wcache[key] = key;
         }
         sources[wkey] = [
-            Function(['require','module','exports'], '(' + fn + ')(self)'),
+            'function(require,module,exports){' + fn + '(self); }',
             wcache
         ];
     }
@@ -13156,17 +13155,30 @@ module.exports = function (fn) {
 
     var scache = {}; scache[wkey] = wkey;
     sources[skey] = [
-        Function(['require'], (
-            // try to call default if defined to also support babel esmodule
-            // exports
+        'function(require,module,exports){' +
+            // try to call default if defined to also support babel esmodule exports
             'var f = require(' + stringify(wkey) + ');' +
-            '(f.default ? f.default : f)(self);'
-        )),
+            '(f.default ? f.default : f)(self);' +
+        '}',
         scache
     ];
 
+    var workerSources = {};
+    resolveSources(skey);
+
+    function resolveSources(key) {
+        workerSources[key] = true;
+
+        for (var depPath in sources[key][1]) {
+            var depKey = sources[key][1][depPath];
+            if (!workerSources[depKey]) {
+                resolveSources(depKey);
+            }
+        }
+    }
+
     var src = '(' + bundleFn + ')({'
-        + Object.keys(sources).map(function (key) {
+        + Object.keys(workerSources).map(function (key) {
             return stringify(key) + ':['
                 + sources[key][0]
                 + ',' + stringify(sources[key][1]) + ']'
@@ -13177,9 +13189,12 @@ module.exports = function (fn) {
 
     var URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
 
-    return new Worker(URL.createObjectURL(
-        new Blob([src], { type: 'text/javascript' })
-    ));
+    var blob = new Blob([src], { type: 'text/javascript' });
+    if (options && options.bare) { return blob; }
+    var workerUrl = URL.createObjectURL(blob);
+    var worker = new Worker(workerUrl);
+    worker.objectURL = workerUrl;
+    return worker;
 };
 
 },{}]},{},[1])(1)
