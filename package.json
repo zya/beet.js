@@ -21,7 +21,7 @@
     "watchjs": "0.0.0"
   },
   "devDependencies": {
-    "three": "^0.72.0",
+    "three": "^0.125.0",
     "bowser": "^1.0.0",
     "verge": "^1.9.1",
     "prismjs": "prismjs/prism",
