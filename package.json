@@ -25,9 +25,9 @@
     "bowser": "^1.0.0",
     "verge": "^1.9.1",
     "prismjs": "prismjs/prism",
-    "browserify": "^9.0.8",
+    "browserify": "^17.0.0",
     "chai": "^2.2.0",
-    "mocha": "^2.2.4",
+    "mocha": "^10.1.0",
     "uglify-js": "^2.4.23",
     "watchify": "^3.2.2"
   }
